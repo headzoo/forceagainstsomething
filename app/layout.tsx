@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -6,9 +7,15 @@ export const metadata: Metadata = {
   title: 'Force Against Something — Find your way to act',
   description: 'A curated directory of verified petitions, lawsuits, and campaigns fighting for the issue you choose.',
   icons: {
-    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
-    apple: [{ url: '/icon.svg', sizes: '512x512', type: 'image/svg+xml' }],
-    shortcut: ['/favicon.svg'],
+    icon: [
+      { url: '/favicon.ico', sizes: '48x48' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+    shortcut: ['/favicon.ico'],
   },
   openGraph: {
     type: 'website',
@@ -33,7 +40,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

@@ -25,7 +25,7 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
     <main>
       <header className="site-header">
         <a className="brand header-brand" href="#top" aria-label="Force Against Something home">
-          <Image src="/logotype.svg" alt="Force Against Something" width={670} height={96} priority />
+          <Image src="/header-wordmark.png" alt="Force Against Something" width={629} height={96} priority />
         </a>
         <a className="submit-link" href="mailto:hello@forceagainstsomething.com?subject=Action%20submission">Submit an action <span aria-hidden="true">↗</span></a>
       </header>
@@ -74,7 +74,7 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
       </section>
 
       <section className="trust-band"><div className="trust-mark" aria-hidden="true"><span>✓</span></div><div><p className="eyebrow"><span /> OUR STANDARD</p><h2>Curated for action,<br />not attention.</h2></div><p>We prioritize credible organizations, active efforts, transparent asks, and direct links. No outrage bait. No pay-to-play placement. Just useful ways to help.</p></section>
-      <footer><a className="brand footer-brand" href="#top"><span className="brand-mark" aria-hidden="true"><i /></span><span>FORCE <b>AGAINST</b> SOMETHING</span></a><p>Pick an issue. Find your part. Add your force.</p><div><a href="mailto:hello@forceagainstsomething.com">Contact</a><a href="mailto:hello@forceagainstsomething.com?subject=Action%20submission">Submit an action</a></div></footer>
+      <footer><a className="brand footer-brand" href="#top" aria-label="Force Against Something home"><Image src="/footer-wordmark.png" alt="Force Against Something" width={629} height={96} /></a><p>Pick an issue. Find your part. Add your force.</p><div><a href="mailto:hello@forceagainstsomething.com">Contact</a><a href="mailto:hello@forceagainstsomething.com?subject=Action%20submission">Submit an action</a></div></footer>
     </main>
   );
 }
