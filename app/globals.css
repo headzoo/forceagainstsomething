@@ -9,6 +9,7 @@ button, select { font:inherit; }
 .site-header { height:78px; padding:0 5vw; display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid var(--ink); background:var(--paper); position:relative; z-index:2; }
 .brand { display:flex; align-items:center; gap:11px; font-weight:900; letter-spacing:-.04em; text-decoration:none; font-size:17px; white-space:nowrap; }
 .brand b { color:var(--red); }
+.header-brand img { display:block; width:auto; height:42px; }
 .brand-mark { width:32px; height:32px; border-radius:8px; background:var(--ink); display:grid; place-items:center; transform:rotate(-2deg); flex:0 0 auto; position:relative; }
 .brand-mark::before { content:''; width:16px; height:6px; background:var(--paper); border-radius:2px; transform:rotate(-35deg); }
 .brand-mark i { position:absolute; width:7px; height:15px; background:var(--red); border-radius:2px; transform:translate(4px,-4px) rotate(-35deg); }
@@ -39,6 +40,7 @@ select { appearance:none; width:100%; border:0; border-radius:0; background:var(
 .filter-row button.active, .filter-row button:hover { background:var(--ink); color:var(--paper); }
 .filter-row sup { color:var(--red); padding-left:2px; }
 .action-card { display:grid; grid-template-columns:72px 1fr 160px; gap:24px; padding:32px 4px; border-bottom:1.5px solid var(--ink); align-items:center; }
+.empty-state { margin:0; padding:42px 4px; border-bottom:1.5px solid var(--ink); font-size:18px; font-weight:800; }
 .card-number { align-self:start; color:var(--red); font-size:13px; font-weight:950; padding-top:3px; }
 .badges { display:flex; gap:8px; margin-bottom:13px; }
 .badges span { text-transform:uppercase; font-size:9px; letter-spacing:.1em; padding:5px 7px; font-weight:950; border:1px solid var(--ink); }
@@ -62,6 +64,7 @@ footer>div { display:flex; justify-content:flex-end; gap:22px; font-size:11px; t
 @media (max-width:780px) {
   .site-header { height:68px; padding:0 18px; }
   .brand { font-size:12px; gap:8px; }
+  .header-brand img { height:34px; }
   .brand-mark { width:29px; height:29px; }
   .submit-link { font-size:0; }
   .submit-link span { font-size:20px; }
