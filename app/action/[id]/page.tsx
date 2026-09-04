@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { AuthControl } from '@/app/auth-control';
+import { SiteHeader } from '@/app/site-header';
 import { getPublishedAction } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -41,15 +41,7 @@ export default async function ActionPage({ params }: ActionPageProps) {
 
   return (
     <main className="action-detail-page">
-      <header className="site-header">
-        <Link className="brand header-brand" href="/" aria-label="Force Against Something home">
-          <Image src="/header-wordmark-star.png" alt="Force Against Something" width={620} height={99} priority unoptimized />
-        </Link>
-        <div className="header-actions">
-          <Link className="submit-link" href="/submit">Submit an action <span aria-hidden="true">↗</span></Link>
-          <AuthControl />
-        </div>
-      </header>
+      <SiteHeader />
 
       <section className="action-detail-hero">
         <div className="action-detail-heading">

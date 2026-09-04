@@ -1,7 +1,14 @@
-import { bigint, bigserial, boolean, index, integer, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { bigint, bigserial, boolean, customType, index, integer, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 import { user } from './auth-schema';
 
 export * from './auth-schema';
+
+const tsvector = customType<{ data: string }>({
+  dataType() {
+    return 'tsvector';
+  },
+});
 
 export const issueStatus = pgEnum('issue_status', ['active', 'planned']);
 export const actionType = pgEnum('action_type', ['Petition', 'Lawsuit', 'Campaign']);
@@ -22,6 +29,10 @@ export const orgs = pgTable('orgs', {
   name: text('name').notNull(),
   website: text('website'),
   description: text('description').notNull().default(''),
+  searchTsv: tsvector('search_tsv').generatedAlwaysAs(sql`
+    setweight(to_tsvector('english', coalesce(name, '')), 'A') ||
+    setweight(to_tsvector('english', coalesce(description, '')), 'B')
+  `),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
@@ -49,6 +60,11 @@ export const actions = pgTable('actions', {
   approvedByUserId: text('approved_by_user_id').references(() => user.id, { onDelete: 'set null' }),
   published: boolean('published').notNull().default(false),
   sortOrder: integer('sort_order').notNull().default(0),
+  searchTsv: tsvector('search_tsv').generatedAlwaysAs(sql`
+    setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
+    setweight(to_tsvector('english', coalesce(detail, '')), 'B') ||
+    setweight(to_tsvector('english', coalesce(description, '')), 'C')
+  `),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [

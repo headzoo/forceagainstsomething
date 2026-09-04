@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import ctaImage from '@/assets/cta.jpg';
 import type { DirectoryAction, Issue } from '@/lib/db';
 import { authClient } from '@/lib/auth-client';
-import { AuthControl } from './auth-control';
+import { SiteHeader } from './site-header';
 
 type ActionType = DirectoryAction['type'];
 const filters: Array<'All' | ActionType> = ['All', 'Petition', 'Lawsuit', 'Campaign'];
@@ -90,15 +90,7 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
 
   return (
     <main>
-      <header className="site-header">
-        <a className="brand header-brand" href="#top" aria-label="Force Against Something home">
-          <Image src="/header-wordmark-star.png" alt="Force Against Something" width={620} height={99} priority unoptimized />
-        </a>
-        <div className="header-actions">
-          <Link className="submit-link" href="/submit">Submit an action <span aria-hidden="true">↗</span></Link>
-          <AuthControl />
-        </div>
-      </header>
+      <SiteHeader />
 
       <section className="hero" id="top">
         <div className="hero-copy">
@@ -150,7 +142,7 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
                       </svg>
                     </button>
                   )}
-                  <h3>{action.title}</h3>
+                  <h3><Link href={`/action/${action.id}`}>{action.title}</Link></h3>
                 </div>
                 <p>{action.detail}</p>
                 <span className="organization">BY <Link href={`/orgs/${action.orgId}`}>{action.organization.toUpperCase()}</Link></span>

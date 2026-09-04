@@ -3,6 +3,9 @@ import { actions, issues, orgs, user } from '@/db/schema';
 import { db } from '@/lib/db';
 import { getMemberSession, isAdminEmail } from '@/lib/member';
 
+const { searchTsv: _searchTsv, ...actionColumns } = getTableColumns(actions);
+void _searchTsv;
+
 export async function GET() {
   const session = await getMemberSession();
   if (!session || !isAdminEmail(session.user.email)) {
@@ -11,7 +14,7 @@ export async function GET() {
 
   const submissions = await db
     .select({
-      ...getTableColumns(actions),
+      ...actionColumns,
       organization: orgs.name,
       issue: issues.name,
       submitterName: user.name,

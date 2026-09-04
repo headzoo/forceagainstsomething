@@ -1,9 +1,9 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { type FormEvent, useEffect, useState } from 'react';
 import { AuthControl } from '@/app/auth-control';
+import { SiteHeader } from '@/app/site-header';
 import { authClient } from '@/lib/auth-client';
 
 type IssueOption = { id: number; name: string; slug: string };
@@ -122,14 +122,7 @@ export function SubmissionFlow({ issues }: { issues: IssueOption[] }) {
 
   return (
     <main className="submission-page">
-      <header className="site-header">
-        <Link className="brand header-brand" href="/" aria-label="Force Against Something home">
-          <Image src="/header-wordmark-star.png" alt="Force Against Something" width={620} height={99} priority unoptimized />
-        </Link>
-        <div className="header-actions">
-          <AuthControl />
-        </div>
-      </header>
+      <SiteHeader showSubmitLink={false} />
 
       <section className="submission-shell">
         <div className="submission-heading">

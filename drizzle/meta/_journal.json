@@ -43,6 +43,13 @@
       "when": 1788528926470,
       "tag": "0005_tired_kid_colt",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788541694886,
+      "tag": "0006_gigantic_unicorn",
+      "breakpoints": true
     }
   ]
 }
