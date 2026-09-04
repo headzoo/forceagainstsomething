@@ -47,7 +47,7 @@ This project requires Node.js 22.13 or newer and a PostgreSQL database.
    npm run dev
    ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open site [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Available scripts
 
