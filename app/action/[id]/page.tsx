@@ -43,7 +43,7 @@ export default async function ActionPage({ params }: ActionPageProps) {
     <main className="action-detail-page">
       <header className="site-header">
         <Link className="brand header-brand" href="/" aria-label="Force Against Something home">
-          <Image src="/header-wordmark.png" alt="Force Against Something" width={629} height={96} priority />
+          <Image src="/header-wordmark.png" alt="Force Against Something" width={620} height={99} priority />
         </Link>
         <div className="header-actions">
           <Link className="submit-link" href="/submit">Submit an action <span aria-hidden="true">↗</span></Link>
@@ -77,7 +77,7 @@ export default async function ActionPage({ params }: ActionPageProps) {
         </article>
       </section>
 
-      <footer><Link className="brand footer-brand" href="/" aria-label="Force Against Something home"><Image src="/footer-wordmark.png" alt="Force Against Something" width={629} height={96} /></Link><p>Pick an issue. Find your part. Add your force.</p><div><a href="mailto:hello@forceagainstsomething.com">Contact</a><Link href="/submit">Submit an action</Link></div></footer>
+      <footer><Link className="brand footer-brand" href="/" aria-label="Force Against Something home"><Image src="/footer-wordmark.png" alt="Force Against Something" width={620} height={99} /></Link><p>Pick an issue. Find your part. Add your force.</p><div><a href="mailto:hello@forceagainstsomething.com">Contact</a><Link href="/submit">Submit an action</Link></div></footer>
     </main>
   );
 }
