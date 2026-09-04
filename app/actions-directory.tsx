@@ -2,17 +2,24 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { DirectoryAction, Issue } from '@/lib/db';
+import { authClient } from '@/lib/auth-client';
 import { AuthControl } from './auth-control';
 
 type ActionType = DirectoryAction['type'];
 const filters: Array<'All' | ActionType> = ['All', 'Petition', 'Lawsuit', 'Campaign'];
 
 export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions: DirectoryAction[] }) {
+  const { data: session } = authClient.useSession();
+  const userId = session?.user.id;
   const initialIssue = issues.find((issue) => issue.status === 'active') ?? issues[0];
   const [issueSlug, setIssueSlug] = useState(initialIssue?.slug ?? '');
   const [filter, setFilter] = useState<(typeof filters)[number]>('All');
+  const [bookmarks, setBookmarks] = useState<{ userId: string; actionIds: Set<number> } | null>(null);
+  const [updatingBookmarks, setUpdatingBookmarks] = useState<Set<number>>(new Set());
+  const [bookmarkError, setBookmarkError] = useState('');
+  const bookmarkedActionIds = bookmarks && bookmarks.userId === userId ? bookmarks.actionIds : new Set<number>();
   const selectedIssue = issues.find((issue) => issue.slug === issueSlug) ?? initialIssue;
   const issueActions = useMemo(
     () => actions.filter((action) => action.issueId === selectedIssue?.id),
@@ -22,6 +29,63 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
     () => filter === 'All' ? issueActions : issueActions.filter((item) => item.type === filter),
     [filter, issueActions],
   );
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const controller = new AbortController();
+    fetch('/api/bookmarks', { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Could not load bookmarks.');
+        return await response.json() as { actionIds: number[] };
+      })
+      .then(({ actionIds }) => setBookmarks({ userId, actionIds: new Set(actionIds) }))
+      .catch((error: unknown) => {
+        if (error instanceof Error && error.name !== 'AbortError') setBookmarkError(error.message);
+      });
+
+    return () => controller.abort();
+  }, [userId]);
+
+  async function toggleBookmark(actionId: number) {
+    if (!session || updatingBookmarks.has(actionId)) return;
+
+    const wasBookmarked = bookmarkedActionIds.has(actionId);
+    setBookmarkError('');
+    setBookmarks((current) => {
+      const next = new Set(current?.userId === session.user.id ? current.actionIds : []);
+      if (wasBookmarked) next.delete(actionId);
+      else next.add(actionId);
+      return { userId: session.user.id, actionIds: next };
+    });
+    setUpdatingBookmarks((current) => new Set(current).add(actionId));
+
+    try {
+      const response = await fetch('/api/bookmarks', {
+        method: wasBookmarked ? 'DELETE' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ actionId }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => null) as { error?: string } | null;
+        throw new Error(body?.error ?? 'Could not update that bookmark.');
+      }
+    } catch (error) {
+      setBookmarks((current) => {
+        const next = new Set(current?.userId === session.user.id ? current.actionIds : []);
+        if (wasBookmarked) next.add(actionId);
+        else next.delete(actionId);
+        return { userId: session.user.id, actionIds: next };
+      });
+      setBookmarkError(error instanceof Error ? error.message : 'Could not update that bookmark.');
+    } finally {
+      setUpdatingBookmarks((current) => {
+        const next = new Set(current);
+        next.delete(actionId);
+        return next;
+      });
+    }
+  }
 
   return (
     <main>
@@ -68,13 +132,31 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
               <div className="card-number">{String(index + 1).padStart(2, '0')}</div>
               <div className="card-main">
                 <div className="badges"><span className={`type ${action.type.toLowerCase()}`}>{action.type}</span>{action.urgent && <span className="urgent">Priority</span>}</div>
-                <h3>{action.title}</h3><p>{action.detail}</p>
-                <span className="organization">BY {action.organization.toUpperCase()} {action.verified && <i aria-label="Verified organization">✓</i>}</span>
+                <div className="action-title-row">
+                  {session && (
+                    <button
+                      className={`bookmark-button${bookmarkedActionIds.has(action.id) ? ' bookmarked' : ''}`}
+                      type="button"
+                      aria-label={`${bookmarkedActionIds.has(action.id) ? 'Remove bookmark from' : 'Bookmark'} ${action.title}`}
+                      aria-pressed={bookmarkedActionIds.has(action.id)}
+                      disabled={updatingBookmarks.has(action.id)}
+                      onClick={() => toggleBookmark(action.id)}
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M6.75 3.75h10.5v16.5L12 16.7l-5.25 3.55V3.75Z" />
+                      </svg>
+                    </button>
+                  )}
+                  <h3>{action.title}</h3>
+                </div>
+                <p>{action.detail}</p>
+                <span className="organization">BY <Link href={`/orgs/${action.orgId}`}>{action.organization.toUpperCase()}</Link> {action.verified && <i aria-label="Verified organization">✓</i>}</span>
               </div>
               <div className="card-action"><span>{action.effort}</span><Link href={`/action/${action.id}`} aria-label={`Learn more and take action: ${action.title}`}>TAKE ACTION <b aria-hidden="true">→</b></Link></div>
             </article>
           ))}
           {visible.length === 0 && <p className="empty-state">No published actions match this filter yet.</p>}
+          {bookmarkError && <p className="bookmark-error" role="alert">{bookmarkError}</p>}
         </div>
       </section>
 

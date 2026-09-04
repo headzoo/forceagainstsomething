@@ -57,12 +57,12 @@ export default async function ActionPage({ params }: ActionPageProps) {
           <div className="badges"><span className={`type ${action.type.toLowerCase()}`}>{action.type}</span>{action.urgent && <span className="urgent">Priority</span>}</div>
           <h1>{action.title}</h1>
           <p>{action.detail}</p>
-          <span className="organization">BY {action.organization.toUpperCase()} {action.verified && <i aria-label="Verified organization">✓</i>}</span>
+          <span className="organization">BY <Link href={`/orgs/${action.orgId}`}>{action.organization.toUpperCase()}</Link> {action.verified && <i aria-label="Verified organization">✓</i>}</span>
         </div>
         <aside className="action-detail-cta">
           <p className="step">READY TO HELP?</p>
           <h2>Make your<br />move.</h2>
-          <p>You’ll continue on {action.organization}’s website.</p>
+          <p>You’ll continue on <Link className="organization-inline-link" href={`/orgs/${action.orgId}`}>{action.organization}</Link>’s website.</p>
           <a className="primary-button" href={action.href} target="_blank" rel="noreferrer">TAKE ACTION <span aria-hidden="true">↗</span></a>
           <small>{action.effort}</small>
         </aside>

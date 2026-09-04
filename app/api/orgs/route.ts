@@ -11,12 +11,17 @@ export async function POST(request: Request) {
   const [existing] = await db.select().from(orgs).where(eq(orgs.ownerUserId, session.user.id)).limit(1);
   if (existing) return Response.json({ error: 'Your account already has an organization.', organization: existing }, { status: 409 });
 
-  const body = await request.json().catch(() => null) as { name?: unknown; website?: unknown } | null;
+  const body = await request.json().catch(() => null) as { name?: unknown; website?: unknown; description?: unknown } | null;
   const name = typeof body?.name === 'string' ? body.name.trim().replace(/\s+/g, ' ') : '';
   const websiteInput = typeof body?.website === 'string' ? body.website.trim() : '';
+  const description = typeof body?.description === 'string' ? body.description.trim() : '';
 
   if (name.length < 2 || name.length > 120) {
     return Response.json({ error: 'Organization name must be between 2 and 120 characters.' }, { status: 400 });
+  }
+
+  if (description.length > 20_000) {
+    return Response.json({ error: 'Organization description must be 20,000 characters or fewer.' }, { status: 400 });
   }
 
   let website: string | null = null;
@@ -33,6 +38,7 @@ export async function POST(request: Request) {
       ownerUserId: session.user.id,
       name,
       website,
+      description,
     }).returning();
 
     return Response.json({ organization }, { status: 201 });
@@ -48,12 +54,17 @@ export async function PATCH(request: Request) {
   const [existing] = await db.select().from(orgs).where(eq(orgs.ownerUserId, session.user.id)).limit(1);
   if (!existing) return Response.json({ error: 'Create an organization before updating it.' }, { status: 404 });
 
-  const body = await request.json().catch(() => null) as { name?: unknown; website?: unknown } | null;
+  const body = await request.json().catch(() => null) as { name?: unknown; website?: unknown; description?: unknown } | null;
   const name = typeof body?.name === 'string' ? body.name.trim().replace(/\s+/g, ' ') : '';
   const websiteInput = typeof body?.website === 'string' ? body.website.trim() : '';
+  const description = typeof body?.description === 'string' ? body.description.trim() : '';
 
   if (name.length < 2 || name.length > 120) {
     return Response.json({ error: 'Organization name must be between 2 and 120 characters.' }, { status: 400 });
+  }
+
+  if (description.length > 20_000) {
+    return Response.json({ error: 'Organization description must be 20,000 characters or fewer.' }, { status: 400 });
   }
 
   let website: string | null = null;
@@ -68,7 +79,7 @@ export async function PATCH(request: Request) {
   try {
     const [organization] = await db
       .update(orgs)
-      .set({ name, website, updatedAt: new Date() })
+      .set({ name, website, description, updatedAt: new Date() })
       .where(eq(orgs.ownerUserId, session.user.id))
       .returning();
 

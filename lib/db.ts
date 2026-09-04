@@ -7,6 +7,13 @@ import { actions, issues, orgs, type ActionRecord, type Issue } from '@/db/schem
 export type { ActionRecord, Issue, Organization } from '@/db/schema';
 
 export type DirectoryAction = ActionRecord & { organization: string };
+export type PublishedOrganization = {
+  id: number;
+  name: string;
+  website: string | null;
+  description: string;
+  actions: Array<ActionRecord & { issue: string }>;
+};
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -59,4 +66,27 @@ export async function getPublishedAction(id: number) {
     .limit(1);
 
   return action;
+}
+
+export async function getPublishedOrganization(id: number): Promise<PublishedOrganization | undefined> {
+  const [organization] = await db
+    .select({ id: orgs.id, name: orgs.name, website: orgs.website, description: orgs.description })
+    .from(orgs)
+    .where(eq(orgs.id, id))
+    .limit(1);
+
+  if (!organization) return undefined;
+
+  const actionRows = await db
+    .select({ ...getTableColumns(actions), issue: issues.name })
+    .from(actions)
+    .innerJoin(issues, eq(actions.issueId, issues.id))
+    .where(and(
+      eq(actions.orgId, id),
+      eq(actions.approved, true),
+      eq(actions.published, true),
+    ))
+    .orderBy(desc(actions.urgent), asc(actions.sortOrder), asc(actions.title));
+
+  return { ...organization, actions: actionRows };
 }
