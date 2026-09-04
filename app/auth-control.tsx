@@ -1,6 +1,6 @@
 'use client';
 
-import { type FormEvent, useEffect, useId, useState } from 'react';
+import { type FormEvent, useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
 import { authClient } from '@/lib/auth-client';
 
@@ -13,6 +13,8 @@ export function AuthControl() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
 
   useEffect(() => {
@@ -25,6 +27,24 @@ export function AuthControl() {
     document.addEventListener('keydown', closeOnEscape);
     return () => document.removeEventListener('keydown', closeOnEscape);
   }, [open]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const closeMenu = (event: PointerEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) setMenuOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+
+    document.addEventListener('pointerdown', closeMenu);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeMenu);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [menuOpen]);
 
   useEffect(() => {
     if (!session) return;
@@ -73,10 +93,25 @@ export function AuthControl() {
 
   if (session) {
     return (
-      <div className="account-control">
-        {isAdmin && <Link href="/admin">Review</Link>}
-        <span title={session.user.email}>{session.user.name}</span>
-        <button type="button" onClick={() => authClient.signOut()}>Sign out</button>
+      <div className="account-control" ref={menuRef}>
+        <button
+          className="account-menu-trigger"
+          type="button"
+          aria-haspopup="menu"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((current) => !current)}
+          title={session.user.email}
+        >
+          <span>{session.user.name}</span><b aria-hidden="true">⌄</b>
+        </button>
+        {menuOpen && (
+          <div className="account-menu" role="menu">
+            <Link href="/account" role="menuitem" onClick={() => setMenuOpen(false)}>Account</Link>
+            <Link href="/organization" role="menuitem" onClick={() => setMenuOpen(false)}>Organization</Link>
+            {isAdmin && <Link href="/admin" role="menuitem" onClick={() => setMenuOpen(false)}>Review submissions</Link>}
+            <button type="button" role="menuitem" onClick={() => authClient.signOut()}>Log out</button>
+          </div>
+        )}
       </div>
     );
   }

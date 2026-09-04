@@ -62,27 +62,6 @@ export function SubmissionFlow({ issues }: { issues: IssueOption[] }) {
     return () => { active = false; };
   }, [session]);
 
-  async function createOrganization(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setWorking(true);
-    setError('');
-    const form = new FormData(event.currentTarget);
-    const response = await fetch('/api/orgs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: form.get('name'), website: form.get('website') }),
-    });
-    const data = await responseJson(response);
-    setWorking(false);
-
-    if (!response.ok) {
-      setError(String(data.error ?? 'Could not create your organization.'));
-      return;
-    }
-
-    setAccount((current) => ({ organization: data.organization as Organization, isAdmin: current?.isAdmin ?? false }));
-  }
-
   async function analyzeHref(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setWorking(true);
@@ -171,15 +150,12 @@ export function SubmissionFlow({ issues }: { issues: IssueOption[] }) {
           )}
 
           {needsOrganization && (
-            <form className="submission-form" onSubmit={createOrganization}>
+            <div className="submission-status">
               <p className="step">STEP 01 / ORGANIZATION</p>
               <h2>Create your organization.</h2>
-              <p className="form-intro">Actions belong to organizations, so add yours before continuing.</p>
-              <label>Organization name<input name="name" type="text" minLength={2} maxLength={120} required autoFocus /></label>
-              <label>Organization website <small>Optional</small><input name="website" type="url" placeholder="https://example.org" /></label>
-              {error && <p className="form-error" role="alert">{error}</p>}
-              <button className="form-submit" type="submit" disabled={working}>{working ? 'CREATING…' : 'CREATE ORGANIZATION'} <span>→</span></button>
-            </form>
+              <p>Actions belong to organizations. Add yours on the organization page before continuing.</p>
+              <Link className="form-submit" href="/organization">CREATE ORGANIZATION <span>→</span></Link>
+            </div>
           )}
 
           {ready && !submittedTitle && !preview && (
