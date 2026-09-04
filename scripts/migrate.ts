@@ -25,7 +25,7 @@ const issueRows = await db.insert(issues).values([
   { slug: 'housing-justice', name: 'Housing justice', status: 'active', sortOrder: 7 },
   { slug: 'disability-rights', name: 'Disability rights', status: 'active', sortOrder: 8 },
   { slug: 'workers-rights', name: 'Workers’ rights', status: 'active', sortOrder: 9 },
-  { slug: 'gun-violence-prevention', name: 'Gun violence prevention', status: 'active', sortOrder: 10 },
+  { slug: 'gun-violence', name: 'Gun violence', status: 'active', sortOrder: 10 },
   { slug: 'indigenous-rights', name: 'Indigenous rights', status: 'active', sortOrder: 11 },
   { slug: 'digital-rights', name: 'Digital rights', status: 'active', sortOrder: 12 },
   { slug: 'education-equity', name: 'Education equity', status: 'active', sortOrder: 13 },
@@ -48,11 +48,11 @@ const lgbtqRights = issueRows.find((issue) => issue.slug === 'lgbtq-rights');
 const housingJustice = issueRows.find((issue) => issue.slug === 'housing-justice');
 const disabilityRights = issueRows.find((issue) => issue.slug === 'disability-rights');
 const workersRights = issueRows.find((issue) => issue.slug === 'workers-rights');
-const gunViolencePrevention = issueRows.find((issue) => issue.slug === 'gun-violence-prevention');
+const gunViolence = issueRows.find((issue) => issue.slug === 'gun-violence');
 const indigenousRights = issueRows.find((issue) => issue.slug === 'indigenous-rights');
 const digitalRights = issueRows.find((issue) => issue.slug === 'digital-rights');
 const educationEquity = issueRows.find((issue) => issue.slug === 'education-equity');
-if (!votingRights || !criminalJustice || !reproductiveFreedom || !climateJustice || !immigrantRights || !lgbtqRights || !housingJustice || !disabilityRights || !workersRights || !gunViolencePrevention || !indigenousRights || !digitalRights || !educationEquity) {
+if (!votingRights || !criminalJustice || !reproductiveFreedom || !climateJustice || !immigrantRights || !lgbtqRights || !housingJustice || !disabilityRights || !workersRights || !gunViolence || !indigenousRights || !digitalRights || !educationEquity) {
   throw new Error('An active issue was not created.');
 }
 
@@ -565,7 +565,7 @@ const seedActions: SeedAction[] = [
     sortOrder: 5,
   },
   {
-    issueId: gunViolencePrevention.id,
+    issueId: gunViolence.id,
     organization: org(
       'Everytown for Gun Safety',
       'https://www.everytown.org/',
@@ -582,7 +582,7 @@ const seedActions: SeedAction[] = [
     sortOrder: 1,
   },
   {
-    issueId: gunViolencePrevention.id,
+    issueId: gunViolence.id,
     organization: org(
       'Everytown Law',
       'https://everytownlaw.org/',
@@ -598,7 +598,7 @@ const seedActions: SeedAction[] = [
     sortOrder: 2,
   },
   {
-    issueId: gunViolencePrevention.id,
+    issueId: gunViolence.id,
     organization: org(
       'Everytown Law',
       'https://everytownlaw.org/',
@@ -614,7 +614,7 @@ const seedActions: SeedAction[] = [
     sortOrder: 3,
   },
   {
-    issueId: gunViolencePrevention.id,
+    issueId: gunViolence.id,
     organization: org(
       'GIFFORDS',
       'https://giffords.org/',
@@ -630,7 +630,7 @@ const seedActions: SeedAction[] = [
     sortOrder: 4,
   },
   {
-    issueId: gunViolencePrevention.id,
+    issueId: gunViolence.id,
     organization: org(
       'Moms Demand Action',
       'https://www.momsdemandaction.org/',
