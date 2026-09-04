@@ -8,14 +8,17 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "auth:generate": "node --env-file=.env.local node_modules/auth/dist/index.mjs generate --config lib/auth.ts --output db/auth-schema.ts --adapter drizzle --dialect postgresql --yes",
     "db:generate": "node --env-file=.env.local node_modules/drizzle-kit/bin.cjs generate",
     "db:migrate": "tsx --env-file=.env.local scripts/migrate.ts",
     "start": "next start",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
   },
   "dependencies": {
+    "@better-auth/drizzle-adapter": "^1.7.2",
     "@neondatabase/serverless": "^1.1.0",
     "@vercel/analytics": "^2.0.1",
+    "better-auth": "^1.7.2",
     "drizzle-orm": "^0.45.2",
     "next": "16.2.6",
     "react": "19.2.6",
@@ -31,6 +34,7 @@
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.2",
     "@vitejs/plugin-rsc": "0.5.26",
+    "auth": "^1.7.2",
     "drizzle-kit": "^0.31.10",
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.6",

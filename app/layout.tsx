@@ -3,7 +3,7 @@ import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://force-against-something.plum-venus-8239.chatgpt.site'),
+  metadataBase: new URL('https://force-against-something.headzoo.chatgpt.site'),
   title: 'Force Against Something — Find your way to act',
   description: 'A curated directory of verified petitions, lawsuits, and campaigns fighting for the issue you choose.',
   icons: {

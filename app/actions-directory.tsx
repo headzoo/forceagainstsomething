@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import type { DirectoryAction, Issue } from '@/lib/db';
+import { AuthControl } from './auth-control';
 
 type ActionType = DirectoryAction['type'];
 const filters: Array<'All' | ActionType> = ['All', 'Petition', 'Lawsuit', 'Campaign'];
@@ -27,7 +28,10 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
         <a className="brand header-brand" href="#top" aria-label="Force Against Something home">
           <Image src="/header-wordmark.png" alt="Force Against Something" width={629} height={96} priority />
         </a>
-        <a className="submit-link" href="mailto:hello@forceagainstsomething.com?subject=Action%20submission">Submit an action <span aria-hidden="true">↗</span></a>
+        <div className="header-actions">
+          <a className="submit-link" href="mailto:hello@forceagainstsomething.com?subject=Action%20submission">Submit an action <span aria-hidden="true">↗</span></a>
+          <AuthControl />
+        </div>
       </header>
 
       <section className="hero" id="top">

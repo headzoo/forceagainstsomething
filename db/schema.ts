@@ -1,5 +1,7 @@
 import { bigint, bigserial, boolean, index, integer, pgEnum, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 
+export * from './auth-schema';
+
 export const issueStatus = pgEnum('issue_status', ['active', 'planned']);
 export const actionType = pgEnum('action_type', ['Petition', 'Lawsuit', 'Campaign']);
 
