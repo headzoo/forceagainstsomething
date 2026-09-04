@@ -86,7 +86,6 @@ select { appearance:none; width:100%; border:0; border-radius:0; background:var(
 .organization { font-size:9px; font-weight:900; letter-spacing:.08em; }
 .organization a, .organization-inline-link { text-underline-offset:3px; }
 .organization a:hover, .organization-inline-link:hover { color:var(--red); }
-.organization i { display:inline-grid; place-items:center; color:white; background:var(--red); width:15px; height:15px; border-radius:50%; font-style:normal; margin-left:4px; }
 .card-action { display:flex; flex-direction:column; gap:10px; align-items:flex-end; }
 .card-action>span { font-size:10px; text-transform:uppercase; font-weight:900; color:#60697d; }
 .card-action a { width:150px; padding:14px 12px; border:2px solid var(--ink); text-decoration:none; display:flex; justify-content:space-between; font-size:11px; font-weight:950; letter-spacing:.05em; }

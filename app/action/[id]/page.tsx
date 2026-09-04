@@ -57,7 +57,7 @@ export default async function ActionPage({ params }: ActionPageProps) {
           <div className="badges"><span className={`type ${action.type.toLowerCase()}`}>{action.type}</span>{action.urgent && <span className="urgent">Priority</span>}</div>
           <h1>{action.title}</h1>
           <p>{action.detail}</p>
-          <span className="organization">BY <Link href={`/orgs/${action.orgId}`}>{action.organization.toUpperCase()}</Link> {action.verified && <i aria-label="Verified organization">✓</i>}</span>
+          <span className="organization">BY <Link href={`/orgs/${action.orgId}`}>{action.organization.toUpperCase()}</Link></span>
         </div>
         <aside className="action-detail-cta">
           <p className="step">READY TO HELP?</p>
@@ -77,7 +77,7 @@ export default async function ActionPage({ params }: ActionPageProps) {
         </article>
       </section>
 
-      <footer><Link className="brand footer-brand" href="/" aria-label="Force Against Something home"><Image src="/footer-wordmark-star.png" alt="Force Against Something" width={620} height={99} unoptimized /></Link><p>Pick an issue. Find your part. Add your force.</p><div><a href="mailto:hello@forceagainstsomething.com">Contact</a><Link href="/submit">Submit an action</Link></div></footer>
+      <footer><Link className="brand footer-brand" href="/" aria-label="Force Against Something home"><Image src="/footer-wordmark-star.png" alt="Force Against Something" width={620} height={99} unoptimized /></Link><p>Pick an issue. Do your part.</p><div><a href="mailto:hello@forceagainstsomething.com">Contact</a><Link href="/submit">Submit an action</Link></div></footer>
     </main>
   );
 }
