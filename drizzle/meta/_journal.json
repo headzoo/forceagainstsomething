@@ -15,6 +15,13 @@
       "when": 1788480423516,
       "tag": "0001_burly_martin_li",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788484438350,
+      "tag": "0002_lush_princess_powerful",
+      "breakpoints": true
     }
   ]
 }

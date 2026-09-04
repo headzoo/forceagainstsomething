@@ -1,6 +1,7 @@
 'use client';
 
 import { type FormEvent, useEffect, useId, useState } from 'react';
+import Link from 'next/link';
 import { authClient } from '@/lib/auth-client';
 
 type AuthMode = 'sign-in' | 'sign-up';
@@ -11,6 +12,7 @@ export function AuthControl() {
   const [mode, setMode] = useState<AuthMode>('sign-in');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
   const titleId = useId();
 
   useEffect(() => {
@@ -23,6 +25,17 @@ export function AuthControl() {
     document.addEventListener('keydown', closeOnEscape);
     return () => document.removeEventListener('keydown', closeOnEscape);
   }, [open]);
+
+  useEffect(() => {
+    if (!session) return;
+
+    let active = true;
+    fetch('/api/account/context')
+      .then(async (response) => response.ok ? await response.json() as { isAdmin?: boolean } : null)
+      .then((data) => { if (active) setIsAdmin(Boolean(data?.isAdmin)); })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, [session]);
 
   function showAuth(nextMode: AuthMode) {
     setMode(nextMode);
@@ -61,6 +74,7 @@ export function AuthControl() {
   if (session) {
     return (
       <div className="account-control">
+        {isAdmin && <Link href="/admin">Review</Link>}
         <span title={session.user.email}>{session.user.name}</span>
         <button type="button" onClick={() => authClient.signOut()}>Sign out</button>
       </div>

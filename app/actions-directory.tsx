@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import type { DirectoryAction, Issue } from '@/lib/db';
 import { AuthControl } from './auth-control';
@@ -29,7 +30,7 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
           <Image src="/header-wordmark.png" alt="Force Against Something" width={629} height={96} priority />
         </a>
         <div className="header-actions">
-          <a className="submit-link" href="mailto:hello@forceagainstsomething.com?subject=Action%20submission">Submit an action <span aria-hidden="true">↗</span></a>
+          <Link className="submit-link" href="/submit">Submit an action <span aria-hidden="true">↗</span></Link>
           <AuthControl />
         </div>
       </header>
@@ -78,7 +79,7 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
       </section>
 
       <section className="trust-band"><div className="trust-mark" aria-hidden="true"><span>✓</span></div><div><p className="eyebrow"><span /> OUR STANDARD</p><h2>Curated for action,<br />not attention.</h2></div><p>We prioritize credible organizations, active efforts, transparent asks, and direct links. No outrage bait. No pay-to-play placement. Just useful ways to help.</p></section>
-      <footer><a className="brand footer-brand" href="#top" aria-label="Force Against Something home"><Image src="/footer-wordmark.png" alt="Force Against Something" width={629} height={96} /></a><p>Pick an issue. Find your part. Add your force.</p><div><a href="mailto:hello@forceagainstsomething.com">Contact</a><a href="mailto:hello@forceagainstsomething.com?subject=Action%20submission">Submit an action</a></div></footer>
+      <footer><a className="brand footer-brand" href="#top" aria-label="Force Against Something home"><Image src="/footer-wordmark.png" alt="Force Against Something" width={629} height={96} /></a><p>Pick an issue. Find your part. Add your force.</p><div><a href="mailto:hello@forceagainstsomething.com">Contact</a><Link href="/submit">Submit an action</Link></div></footer>
     </main>
   );
 }
