@@ -40,3 +40,23 @@ export async function getActiveIssues() {
     .where(eq(issues.status, 'active'))
     .orderBy(asc(issues.sortOrder), asc(issues.name));
 }
+
+export async function getPublishedAction(id: number) {
+  const [action] = await db
+    .select({
+      ...getTableColumns(actions),
+      organization: orgs.name,
+      issue: issues.name,
+    })
+    .from(actions)
+    .innerJoin(orgs, eq(actions.orgId, orgs.id))
+    .innerJoin(issues, eq(actions.issueId, issues.id))
+    .where(and(
+      eq(actions.id, id),
+      eq(actions.approved, true),
+      eq(actions.published, true),
+    ))
+    .limit(1);
+
+  return action;
+}

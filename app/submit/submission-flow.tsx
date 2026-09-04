@@ -40,6 +40,7 @@ export function SubmissionFlow({ issues }: { issues: IssueOption[] }) {
   const [preview, setPreview] = useState<Preview | null>(null);
   const [title, setTitle] = useState('');
   const [detail, setDetail] = useState('');
+  const [description, setDescription] = useState('');
   const [working, setWorking] = useState(false);
   const [error, setError] = useState('');
   const [submittedTitle, setSubmittedTitle] = useState('');
@@ -100,6 +101,7 @@ export function SubmissionFlow({ issues }: { issues: IssueOption[] }) {
         type: form.get('type'),
         title,
         detail,
+        description,
       }),
     });
     const data = await responseJson(response);
@@ -181,7 +183,8 @@ export function SubmissionFlow({ issues }: { issues: IssueOption[] }) {
               </div>
               <label>Title<input name="title" type="text" value={title} onChange={(event) => setTitle(event.target.value)} minLength={6} maxLength={180} required /></label>
               <label>Generated slug<input value={slugifyPreview(title)} readOnly aria-describedby="slug-note" /><small id="slug-note">May receive a numeric suffix if already taken.</small></label>
-              <label>Detail<textarea name="detail" value={detail} onChange={(event) => setDetail(event.target.value)} minLength={20} maxLength={600} rows={5} required /></label>
+              <label>Summary<textarea name="detail" value={detail} onChange={(event) => setDetail(event.target.value)} minLength={20} maxLength={600} rows={4} required /><small>Shown on the homepage action card.</small></label>
+              <label>Full description (Markdown)<textarea name="description" value={description} onChange={(event) => setDescription(event.target.value)} minLength={20} maxLength={1000000} rows={14} required /><small>Shown on the action detail page. Markdown headings, lists, links, and tables are supported.</small></label>
               <label>Effort<input value={preview.effort} readOnly /><small>Determined from the linked page and rechecked on submission.</small></label>
               {error && <p className="form-error" role="alert">{error}</p>}
               <button className="form-submit" type="submit" disabled={working || issues.length === 0}>{working ? 'VERIFYING…' : 'SUBMIT FOR APPROVAL'} <span>→</span></button>
@@ -193,7 +196,7 @@ export function SubmissionFlow({ issues }: { issues: IssueOption[] }) {
               <p className="step">SUBMISSION RECEIVED</p>
               <h2>Now under review.</h2>
               <p><strong>{submittedTitle}</strong> was sent to an admin. It will stay out of the public directory until it is manually approved.</p>
-              <div className="success-actions"><Link className="form-submit" href="/">RETURN TO DIRECTORY <span>→</span></Link><button type="button" onClick={() => { setSubmittedTitle(''); setPreview(null); setHref(''); setTitle(''); setDetail(''); }}>Submit another</button></div>
+              <div className="success-actions"><Link className="form-submit" href="/">RETURN TO DIRECTORY <span>→</span></Link><button type="button" onClick={() => { setSubmittedTitle(''); setPreview(null); setHref(''); setTitle(''); setDetail(''); setDescription(''); }}>Submit another</button></div>
             </div>
           )}
         </div>

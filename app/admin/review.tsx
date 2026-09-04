@@ -10,6 +10,7 @@ type Submission = {
   type: string;
   title: string;
   detail: string;
+  description: string;
   effort: string;
   href: string;
   organization: string;
@@ -66,6 +67,7 @@ export function AdminReview() {
               <div className="review-meta"><span>{submission.type}</span><span>{submission.issue}</span><span>{submission.effort}</span></div>
               <h2>{submission.title}</h2>
               <p>{submission.detail}</p>
+              <details className="review-description"><summary>Review full Markdown description</summary><pre>{submission.description}</pre></details>
               <dl><div><dt>Organization</dt><dd>{submission.organization}</dd></div><div><dt>Submitted by</dt><dd>{submission.submitterName ?? 'Unknown'}{submission.submitterEmail ? ` · ${submission.submitterEmail}` : ''}</dd></div></dl>
               <div className="review-actions"><a href={submission.href} target="_blank" rel="noreferrer">Inspect source ↗</a><button type="button" onClick={() => approve(submission.id)} disabled={approving === submission.id}>{approving === submission.id ? 'APPROVING…' : 'APPROVE & PUBLISH'}</button></div>
             </article>

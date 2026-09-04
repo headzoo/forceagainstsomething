@@ -22,6 +22,13 @@
       "when": 1788484438350,
       "tag": "0002_lush_princess_powerful",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788527828819,
+      "tag": "0003_sudden_frog_thor",
+      "breakpoints": true
     }
   ]
 }

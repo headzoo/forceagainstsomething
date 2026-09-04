@@ -57,7 +57,7 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
       <section className="actions-section" id="actions">
         <div className="section-heading">
           <div><p className="eyebrow"><span /> CURRENT FOCUS</p><h2>{selectedIssue?.name ?? 'Actions'}</h2></div>
-          <p>Every listing links directly to the organization leading the work. We check ownership, activity, and a clear path to impact.</p>
+          <p>Every listing gives you the context, organization, and direct path you need to act. We check ownership, activity, and a clear path to impact.</p>
         </div>
         <div className="filter-row" role="group" aria-label="Filter actions by type">
           {filters.map((item) => <button key={item} onClick={() => setFilter(item)} className={filter === item ? 'active' : ''} aria-pressed={filter === item}>{item} {item !== 'All' && <sup>{issueActions.filter((action) => action.type === item).length}</sup>}</button>)}
@@ -71,7 +71,7 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
                 <h3>{action.title}</h3><p>{action.detail}</p>
                 <span className="organization">BY {action.organization.toUpperCase()} {action.verified && <i aria-label="Verified organization">✓</i>}</span>
               </div>
-              <div className="card-action"><span>{action.effort}</span><a href={action.href} target="_blank" rel="noreferrer" aria-label={`Take action: ${action.title}`}>TAKE ACTION <b aria-hidden="true">↗</b></a></div>
+              <div className="card-action"><span>{action.effort}</span><Link href={`/action/${action.id}`} aria-label={`Learn more and take action: ${action.title}`}>TAKE ACTION <b aria-hidden="true">→</b></Link></div>
             </article>
           ))}
           {visible.length === 0 && <p className="empty-state">No published actions match this filter yet.</p>}

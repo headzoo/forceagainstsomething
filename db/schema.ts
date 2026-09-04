@@ -37,6 +37,7 @@ export const actions = pgTable('actions', {
   type: actionType('type').notNull(),
   title: text('title').notNull(),
   detail: text('detail').notNull(),
+  description: text('description').notNull().default(''),
   effort: text('effort').notNull(),
   href: text('href').notNull(),
   urgent: boolean('urgent').notNull().default(false),

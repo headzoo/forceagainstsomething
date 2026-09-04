@@ -30,12 +30,14 @@ export async function POST(request: Request) {
   const type = typeof body?.type === 'string' ? body.type : '';
   const title = typeof body?.title === 'string' ? body.title.trim().replace(/\s+/g, ' ') : '';
   const detail = typeof body?.detail === 'string' ? body.detail.trim().replace(/\s+/g, ' ') : '';
+  const description = typeof body?.description === 'string' ? body.description.trim() : '';
   const href = typeof body?.href === 'string' ? body.href.trim() : '';
 
   if (!Number.isSafeInteger(issueId) || issueId < 1) return Response.json({ error: 'Choose an issue.' }, { status: 400 });
   if (!actionTypes.includes(type as (typeof actionTypes)[number])) return Response.json({ error: 'Choose a valid action type.' }, { status: 400 });
   if (title.length < 6 || title.length > 180) return Response.json({ error: 'Title must be between 6 and 180 characters.' }, { status: 400 });
-  if (detail.length < 20 || detail.length > 600) return Response.json({ error: 'Detail must be between 20 and 600 characters.' }, { status: 400 });
+  if (detail.length < 20 || detail.length > 600) return Response.json({ error: 'Summary must be between 20 and 600 characters.' }, { status: 400 });
+  if (description.length < 20 || description.length > 1_000_000) return Response.json({ error: 'Description must be between 20 and 1,000,000 characters.' }, { status: 400 });
 
   const [issue] = await db
     .select({ id: issues.id })
@@ -60,6 +62,7 @@ export async function POST(request: Request) {
       type: type as (typeof actionTypes)[number],
       title,
       detail,
+      description,
       effort: metadata.effort,
       href: metadata.href,
       approved: false,
