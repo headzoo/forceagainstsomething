@@ -53,7 +53,7 @@ export function AdminReview() {
   return (
     <main className="admin-page">
       <header className="site-header">
-        <Link className="brand header-brand" href="/" aria-label="Force Against Something home"><Image src="/header-wordmark.png" alt="Force Against Something" width={620} height={99} priority /></Link>
+        <Link className="brand header-brand" href="/" aria-label="Force Against Something home"><Image src="/header-wordmark-star.png" alt="Force Against Something" width={620} height={99} priority unoptimized /></Link>
         <div className="header-actions"><Link className="submit-link" href="/submit">Submit an action</Link><AuthControl /></div>
       </header>
       <section className="admin-shell">

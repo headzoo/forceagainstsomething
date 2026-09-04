@@ -124,7 +124,7 @@ export function SubmissionFlow({ issues }: { issues: IssueOption[] }) {
     <main className="submission-page">
       <header className="site-header">
         <Link className="brand header-brand" href="/" aria-label="Force Against Something home">
-          <Image src="/header-wordmark.png" alt="Force Against Something" width={620} height={99} priority />
+          <Image src="/header-wordmark-star.png" alt="Force Against Something" width={620} height={99} priority unoptimized />
         </Link>
         <div className="header-actions">
           <AuthControl />
