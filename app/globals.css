@@ -46,6 +46,8 @@ button, select { font:inherit; }
 h1 { font-size:clamp(64px,8.6vw,132px); line-height:.79; letter-spacing:-.085em; text-transform:uppercase; margin:0; font-weight:950; max-width:800px; }
 h1 em { color:var(--red); font-style:normal; position:relative; }
 h1 em::after { content:''; position:absolute; height:7px; left:2%; right:-2%; bottom:-7px; background:var(--red); transform:rotate(-2deg); }
+.hero-cta { width:100%; max-width:740px; }
+.hero-cta-image { display:block; width:100%; height:auto; }
 .dek { max-width:570px; font-size:clamp(18px,2vw,25px); line-height:1.35; font-weight:600; margin:54px 0 0; }
 .issue-card { padding:88px 6vw 70px; background:var(--ink); color:var(--paper); display:flex; flex-direction:column; justify-content:center; }
 .step { color:#9da6b9; font-weight:900; letter-spacing:.13em; font-size:11px; margin:0 0 24px; }

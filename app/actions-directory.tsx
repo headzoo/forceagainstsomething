@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import ctaImage from '@/assets/cta.jpg';
 import type { DirectoryAction, Issue } from '@/lib/db';
 import { authClient } from '@/lib/auth-client';
 import { AuthControl } from './auth-control';
@@ -102,7 +103,9 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
       <section className="hero" id="top">
         <div className="hero-copy">
           <p className="eyebrow"><span /> ONE ISSUE. EVERY WAY TO ACT.</p>
-          <h1>Turn concern<br />into <em>force.</em></h1>
+          <h1 className="hero-cta">
+            <Image className="hero-cta-image" src={ctaImage} alt="Turn concern into force." priority sizes="(max-width: 780px) calc(100vw - 40px), 48vw" />
+          </h1>
           <p className="dek">A focused directory of verified petitions, lawsuits, and campaigns fighting for the issue you choose.</p>
         </div>
         <div className="issue-card">
