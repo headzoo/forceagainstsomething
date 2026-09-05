@@ -26,11 +26,6 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
   const [bookmarkError, setBookmarkError] = useState('');
   const bookmarkedActionIds = bookmarks && bookmarks.userId === userId ? bookmarks.actionIds : new Set<number>();
   const selectedIssue = issueSlug ? issues.find((issue) => issue.slug === issueSlug) ?? initialIssue : null;
-  const actionCountByIssueId = useMemo(() => {
-    const counts = new Map<number, number>();
-    actions.forEach((action) => counts.set(action.issueId, (counts.get(action.issueId) ?? 0) + 1));
-    return counts;
-  }, [actions]);
   const issueActions = useMemo(
     () => actions.filter((action) => action.issueId === selectedIssue?.id),
     [actions, selectedIssue?.id],
@@ -157,10 +152,11 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
                     className={`issue-option${isSelected ? ' active' : ''}`}
                     disabled={isPlanned}
                     aria-pressed={isSelected}
+                    aria-label={`${issue.name}${isPlanned ? ' coming next' : ''}`}
+                    title={isPlanned ? `${issue.name} coming next` : issue.name}
                     onClick={() => { setIssueSlug(issue.slug); setFilter('All'); }}
                   >
                     <span>{issue.name}</span>
-                    <small>{isPlanned ? 'Coming next' : `${actionCountByIssueId.get(issue.id) ?? 0} actions`}</small>
                   </button>
                 );
               })}
