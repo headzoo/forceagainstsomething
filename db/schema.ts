@@ -28,6 +28,7 @@ export const issues = pgTable('issues', {
 export const orgs = pgTable('orgs', {
   id: bigserial('id', { mode: 'number' }).primaryKey(),
   ownerUserId: text('owner_user_id').references(() => user.id, { onDelete: 'set null' }),
+  slug: text('slug').notNull(),
   name: text('name').notNull(),
   website: text('website'),
   description: text('description').notNull().default(''),
@@ -39,6 +40,7 @@ export const orgs = pgTable('orgs', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   uniqueIndex('orgs_owner_user_unique').on(table.ownerUserId),
+  uniqueIndex('orgs_slug_unique').on(table.slug),
   uniqueIndex('orgs_name_unique').on(table.name),
 ]);
 
@@ -48,7 +50,7 @@ export const actions = pgTable('actions', {
   orgId: bigint('org_id', { mode: 'number' }).notNull().references(() => orgs.id, { onDelete: 'restrict' }),
   submittedByUserId: text('submitted_by_user_id').references(() => user.id, { onDelete: 'set null' }),
   automaticallyAdded: boolean('automatically_added').notNull().default(false),
-  slug: text('slug').notNull().unique(),
+  slug: text('slug').notNull(),
   type: actionType('type').notNull(),
   title: text('title').notNull(),
   detail: text('detail').notNull(),
@@ -74,6 +76,7 @@ export const actions = pgTable('actions', {
   index('actions_issue_approved_published_idx').on(table.issueId, table.approved, table.published, table.sortOrder),
   index('actions_org_idx').on(table.orgId),
   index('actions_submitter_idx').on(table.submittedByUserId),
+  uniqueIndex('actions_issue_slug_unique').on(table.issueId, table.slug),
   uniqueIndex('actions_issue_title_unique').on(table.issueId, table.title),
 ]);
 

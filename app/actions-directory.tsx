@@ -167,7 +167,7 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
       {selectedIssue && (
         <section className="actions-section" id="actions">
           <div className="section-heading">
-            <div><p className="eyebrow"><span /> CURRENT FOCUS</p><h2><Link className="issue-heading-link" href={`/issues/${selectedIssue.slug}`}>{selectedIssue.name}</Link></h2></div>
+            <div><p className="eyebrow"><span /> CURRENT FOCUS</p><h2><Link className="issue-heading-link" href={`/issue/${selectedIssue.slug}`}>{selectedIssue.name}</Link></h2></div>
             <p>Every listing gives you the context, organization, and direct path you need to act. We check ownership, activity, and a clear path to impact.</p>
           </div>
           <div className="filter-row" role="group" aria-label="Filter actions by type">
@@ -188,12 +188,12 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
                         onClick={() => toggleBookmark(action.id)}
                       />
                     )}
-                    <h3><Link href={`/action/${action.id}`}>{action.title}</Link></h3>
+                    <h3><Link href={`/action/${action.issueSlug}/${action.slug}`}>{action.title}</Link></h3>
                   </div>
                   <p>{action.detail}</p>
-                  <span className="organization">BY <Link href={`/orgs/${action.orgId}`}>{action.organization.toUpperCase()}</Link></span>
+                  <span className="organization">BY <Link href={`/org/${action.organizationSlug}`}>{action.organization.toUpperCase()}</Link></span>
                 </div>
-                <div className="card-action"><span>{action.effort}</span><Link href={`/action/${action.id}`} aria-label={`Learn more and take action: ${action.title}`}>TAKE ACTION <b aria-hidden="true">→</b></Link></div>
+                <div className="card-action"><span>{action.effort}</span><Link href={`/action/${action.issueSlug}/${action.slug}`} aria-label={`Learn more and take action: ${action.title}`}>TAKE ACTION</Link></div>
               </article>
             ))}
             {visible.length === 0 && <p className="empty-state">No published actions match this filter yet.</p>}
@@ -203,7 +203,7 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
       )}
 
       <section className="trust-band"><div className="trust-mark" aria-hidden="true"><span>✓</span></div><div><p className="eyebrow"><span /> OUR STANDARD</p><h2>Curated for action,<br />not attention.</h2></div><p>We prioritize credible organizations, active efforts, transparent asks, and direct links. No outrage bait. No pay-to-play placement. Just useful ways to help.</p></section>
-      <footer><a className="brand footer-brand" href="#top" aria-label="Force Against Something home"><Image src="/footer-wordmark-star.png" alt="Force Against Something" width={620} height={99} unoptimized /></a><p>Pick an issue. Do your part.</p><div><Link href="/contact">Contact</Link><Link href="/submit">Submit an action</Link></div></footer>
+      <footer><a className="brand footer-brand" href="#top" aria-label="Force Against Something home"><Image src="/footer-wordmark-star.png" alt="Force Against Something" width={620} height={99} unoptimized /></a><p>Pick an issue. Do your part.</p><div><Link href="/contact">Contact</Link><Link href="/api">API</Link><Link href="/submit">Submit an action</Link></div></footer>
     </main>
   );
 }

@@ -1,22 +1,11 @@
 import { and, eq } from 'drizzle-orm';
 import { actions, issues, orgs } from '@/db/schema';
-import { analyzeActionHref, slugifyTitle } from '@/lib/action-metadata';
+import { analyzeActionHref } from '@/lib/action-metadata';
 import { db } from '@/lib/db';
 import { getMemberSession } from '@/lib/member';
+import { uniqueActionSlug } from '@/lib/slugs';
 
 const actionTypes = ['Petition', 'Lawsuit', 'Campaign'] as const;
-
-async function uniqueSlug(title: string) {
-  const base = slugifyTitle(title);
-
-  for (let suffix = 1; suffix <= 100; suffix += 1) {
-    const candidate = suffix === 1 ? base : `${base}-${suffix}`;
-    const [existing] = await db.select({ id: actions.id }).from(actions).where(eq(actions.slug, candidate)).limit(1);
-    if (!existing) return candidate;
-  }
-
-  return `${base}-${crypto.randomUUID().slice(0, 8)}`;
-}
 
 export async function POST(request: Request) {
   const session = await getMemberSession();
@@ -58,7 +47,7 @@ export async function POST(request: Request) {
       issueId,
       orgId: organization.id,
       submittedByUserId: session.user.id,
-      slug: await uniqueSlug(title),
+      slug: await uniqueActionSlug(issueId, title),
       type: type as (typeof actionTypes)[number],
       title,
       detail,

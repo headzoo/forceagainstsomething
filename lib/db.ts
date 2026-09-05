@@ -10,9 +10,10 @@ const { searchTsv: _actionsSearchTsv, ...actionColumns } = getTableColumns(actio
 void _actionsSearchTsv;
 
 export type PublicAction = Omit<ActionRecord, 'searchTsv'>;
-export type DirectoryAction = PublicAction & { organization: string };
+export type DirectoryAction = PublicAction & { organization: string; organizationSlug: string; issueSlug: string };
 export type PublishedOrganization = {
   id: number;
+  slug: string;
   name: string;
   website: string | null;
   description: string;
@@ -25,6 +26,8 @@ export type PublishedIssue = Issue & {
 
 export type SearchActionResult = {
   id: number;
+  slug: string;
+  issueSlug: string;
   title: string;
   type: PublicAction['type'];
   detail: string;
@@ -34,6 +37,7 @@ export type SearchActionResult = {
 
 export type SearchOrganizationResult = {
   id: number;
+  slug: string;
   name: string;
   description: string;
 };
@@ -55,9 +59,10 @@ export async function getDirectoryData() {
   const [issueRows, actionRows] = await Promise.all([
     db.select().from(issues).orderBy(asc(issues.sortOrder), asc(issues.name)),
     db
-      .select({ ...actionColumns, organization: orgs.name })
+      .select({ ...actionColumns, organization: orgs.name, organizationSlug: orgs.slug, issueSlug: issues.slug })
       .from(actions)
       .innerJoin(orgs, eq(actions.orgId, orgs.id))
+      .innerJoin(issues, eq(actions.issueId, issues.id))
       .where(and(eq(actions.approved, true), eq(actions.published, true)))
       .orderBy(desc(actions.urgent), asc(actions.sortOrder), asc(actions.title)),
   ]);
@@ -81,6 +86,7 @@ export async function getPublishedAction(id: number) {
     .select({
       ...actionColumns,
       organization: orgs.name,
+      organizationSlug: orgs.slug,
       issue: issues.name,
       issueSlug: issues.slug,
       issueDetail: issues.detail,
@@ -98,19 +104,40 @@ export async function getPublishedAction(id: number) {
   return action;
 }
 
-export async function getPublishedIssue(slug: string): Promise<PublishedIssue | undefined> {
-  const [issue] = await db
-    .select()
-    .from(issues)
-    .where(eq(issues.slug, slug))
+export async function getPublishedActionBySlugs(issueSlug: string, actionSlug: string) {
+  const [action] = await db
+    .select({
+      ...actionColumns,
+      organization: orgs.name,
+      organizationSlug: orgs.slug,
+      issue: issues.name,
+      issueSlug: issues.slug,
+      issueDetail: issues.detail,
+    })
+    .from(actions)
+    .innerJoin(orgs, eq(actions.orgId, orgs.id))
+    .innerJoin(issues, eq(actions.issueId, issues.id))
+    .where(and(
+      eq(issues.slug, issueSlug),
+      eq(actions.slug, actionSlug),
+      eq(actions.approved, true),
+      eq(actions.published, true),
+    ))
     .limit(1);
+
+  return action;
+}
+
+export async function getPublishedIssue(slug: string): Promise<PublishedIssue | undefined> {
+  const issue = await getIssueBySlug(slug);
 
   if (!issue) return undefined;
 
   const actionRows = await db
-    .select({ ...actionColumns, organization: orgs.name })
+    .select({ ...actionColumns, organization: orgs.name, organizationSlug: orgs.slug, issueSlug: issues.slug })
     .from(actions)
     .innerJoin(orgs, eq(actions.orgId, orgs.id))
+    .innerJoin(issues, eq(actions.issueId, issues.id))
     .where(and(
       eq(actions.issueId, issue.id),
       eq(actions.approved, true),
@@ -121,12 +148,13 @@ export async function getPublishedIssue(slug: string): Promise<PublishedIssue | 
   return { ...issue, actions: actionRows };
 }
 
+export async function getIssueBySlug(slug: string) {
+  const [issue] = await db.select().from(issues).where(eq(issues.slug, slug)).limit(1);
+  return issue;
+}
+
 export async function getPublishedOrganization(id: number): Promise<PublishedOrganization | undefined> {
-  const [organization] = await db
-    .select({ id: orgs.id, name: orgs.name, website: orgs.website, description: orgs.description })
-    .from(orgs)
-    .where(eq(orgs.id, id))
-    .limit(1);
+  const organization = await getOrganizationById(id);
 
   if (!organization) return undefined;
 
@@ -142,6 +170,74 @@ export async function getPublishedOrganization(id: number): Promise<PublishedOrg
     .orderBy(desc(actions.urgent), asc(actions.sortOrder), asc(actions.title));
 
   return { ...organization, actions: actionRows };
+}
+
+export async function getPublishedOrganizationBySlug(slug: string): Promise<PublishedOrganization | undefined> {
+  const organization = await getOrganizationBySlug(slug);
+
+  if (!organization) return undefined;
+
+  const actionRows = await db
+    .select({ ...actionColumns, issue: issues.name, issueSlug: issues.slug })
+    .from(actions)
+    .innerJoin(issues, eq(actions.issueId, issues.id))
+    .where(and(
+      eq(actions.orgId, organization.id),
+      eq(actions.approved, true),
+      eq(actions.published, true),
+    ))
+    .orderBy(desc(actions.urgent), asc(actions.sortOrder), asc(actions.title));
+
+  return { ...organization, actions: actionRows };
+}
+
+const organizationPublicColumns = {
+  id: orgs.id,
+  slug: orgs.slug,
+  name: orgs.name,
+  website: orgs.website,
+  description: orgs.description,
+  createdAt: orgs.createdAt,
+  updatedAt: orgs.updatedAt,
+};
+
+export async function getOrganizationById(id: number) {
+  const [organization] = await db.select(organizationPublicColumns).from(orgs).where(eq(orgs.id, id)).limit(1);
+  return organization;
+}
+
+export async function getOrganizationBySlug(slug: string) {
+  const [organization] = await db.select(organizationPublicColumns).from(orgs).where(eq(orgs.slug, slug)).limit(1);
+  return organization;
+}
+
+export async function getRecentPublishedActionsForIssue(issueId: number) {
+  return db
+    .select({ ...actionColumns, organization: orgs.name, organizationSlug: orgs.slug, issueSlug: issues.slug })
+    .from(actions)
+    .innerJoin(orgs, eq(actions.orgId, orgs.id))
+    .innerJoin(issues, eq(actions.issueId, issues.id))
+    .where(and(
+      eq(actions.issueId, issueId),
+      eq(actions.approved, true),
+      eq(actions.published, true),
+    ))
+    .orderBy(desc(actions.createdAt))
+    .limit(20);
+}
+
+export async function getRecentPublishedActionsForOrganization(organizationId: number) {
+  return db
+    .select({ ...actionColumns, issue: issues.name, issueSlug: issues.slug })
+    .from(actions)
+    .innerJoin(issues, eq(actions.issueId, issues.id))
+    .where(and(
+      eq(actions.orgId, organizationId),
+      eq(actions.approved, true),
+      eq(actions.published, true),
+    ))
+    .orderBy(desc(actions.createdAt))
+    .limit(20);
 }
 
 export async function searchPublishedContent(query: string): Promise<SearchResults> {
@@ -163,6 +259,8 @@ export async function searchPublishedContent(query: string): Promise<SearchResul
     db
       .select({
         id: actions.id,
+        slug: actions.slug,
+        issueSlug: issues.slug,
         title: actions.title,
         type: actions.type,
         detail: actions.detail,
@@ -179,6 +277,7 @@ export async function searchPublishedContent(query: string): Promise<SearchResul
     db
       .select({
         id: orgs.id,
+        slug: orgs.slug,
         name: orgs.name,
         description: orgs.description,
         score: orgScore,
@@ -190,10 +289,13 @@ export async function searchPublishedContent(query: string): Promise<SearchResul
   ]);
 
   return {
-    actions: actionRows.map(({ score: _score, ...row }) => row),
-    organizations: organizationRows.map(({ score: _score, description, ...row }) => ({
-      ...row,
-      description: description.length > 160 ? `${description.slice(0, 157).trimEnd()}…` : description,
-    })),
+    actions: actionRows.map(({ score, ...row }) => { void score; return row; }),
+    organizations: organizationRows.map(({ score, description, ...row }) => {
+      void score;
+      return {
+        ...row,
+        description: description.length > 160 ? `${description.slice(0, 157).trimEnd()}…` : description,
+      };
+    }),
   };
 }

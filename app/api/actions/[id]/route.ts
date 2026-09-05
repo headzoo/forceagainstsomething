@@ -3,6 +3,7 @@ import { actions, issues, orgs } from '@/db/schema';
 import { analyzeActionHref, parsePublicHttpUrl } from '@/lib/action-metadata';
 import { db } from '@/lib/db';
 import { getMemberSession } from '@/lib/member';
+import { uniqueActionSlug } from '@/lib/slugs';
 
 const actionTypes = ['Petition', 'Lawsuit', 'Campaign'] as const;
 
@@ -16,6 +17,7 @@ async function getOwnedAction(id: number, userId: string) {
     .select({
       id: actions.id,
       issueId: actions.issueId,
+      slug: actions.slug,
       type: actions.type,
       title: actions.title,
       detail: actions.detail,
@@ -101,10 +103,12 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   }
 
   try {
+    const slug = await uniqueActionSlug(issueId, existing.slug, id);
     const [action] = await db
       .update(actions)
       .set({
         issueId,
+        slug,
         type: type as (typeof actionTypes)[number],
         title,
         detail,

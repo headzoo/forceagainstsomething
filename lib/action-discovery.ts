@@ -2,6 +2,7 @@ import { asc, eq } from 'drizzle-orm';
 import { actions, issues, orgs } from '@/db/schema';
 import { parsePublicHttpUrl, slugifyTitle } from '@/lib/action-metadata';
 import { db } from '@/lib/db';
+import { uniqueOrganizationSlug } from '@/lib/slugs';
 
 const DEFAULT_MODEL = 'gpt-5.4-mini';
 const DEFAULT_LIMIT = 3;
@@ -27,6 +28,7 @@ type DiscoveredAction = {
 
 type OrganizationRow = {
   id: number;
+  slug: string;
   name: string;
   website: string | null;
   description: string;
@@ -300,11 +302,13 @@ async function findOrCreateOrganization(
 
   const name = supportersName(candidate.name);
   const [inserted] = await db.insert(orgs).values({
+    slug: await uniqueOrganizationSlug(name),
     name,
     website: candidate.website || null,
     description: candidate.description,
   }).onConflictDoNothing({ target: orgs.name }).returning({
     id: orgs.id,
+    slug: orgs.slug,
     name: orgs.name,
     website: orgs.website,
     description: orgs.description,
@@ -314,6 +318,7 @@ async function findOrCreateOrganization(
   if (!organization) {
     [organization] = await db.select({
       id: orgs.id,
+      slug: orgs.slug,
       name: orgs.name,
       website: orgs.website,
       description: orgs.description,
@@ -358,6 +363,7 @@ export async function discoverNewActions(options: ActionDiscoveryOptions = {}): 
     }).from(actions),
     db.select({
       id: orgs.id,
+      slug: orgs.slug,
       name: orgs.name,
       website: orgs.website,
       description: orgs.description,
@@ -381,7 +387,12 @@ export async function discoverNewActions(options: ActionDiscoveryOptions = {}): 
   const organizationIndexes = createOrganizationIndexes(organizationRows);
   const knownUrls = new Set<string>();
   const knownTitles = new Set<string>();
-  const usedSlugs = new Set(actionRows.map((action) => action.slug));
+  const usedSlugsByIssue = new Map<number, Set<string>>();
+  for (const action of actionRows) {
+    const usedSlugs = usedSlugsByIssue.get(action.issueId) ?? new Set<string>();
+    usedSlugs.add(action.slug);
+    usedSlugsByIssue.set(action.issueId, usedSlugs);
+  }
 
   for (const action of actionRows) {
     try {
@@ -414,6 +425,8 @@ export async function discoverNewActions(options: ActionDiscoveryOptions = {}): 
       continue;
     }
     const { issue, candidates } = search;
+    const usedSlugs = usedSlugsByIssue.get(issue.id) ?? new Set<string>();
+    usedSlugsByIssue.set(issue.id, usedSlugs);
 
     for (const candidate of candidates) {
       const titleKey = `${issue.id}:${comparableText(candidate.title)}`;

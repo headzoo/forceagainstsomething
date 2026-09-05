@@ -16,7 +16,9 @@ type FlatResult =
   | { kind: 'action'; item: SearchActionResult };
 
 function resultHref(result: FlatResult) {
-  return result.kind === 'organization' ? `/orgs/${result.item.id}` : `/action/${result.item.id}`;
+  return result.kind === 'organization'
+    ? `/org/${result.item.slug}`
+    : `/action/${result.item.issueSlug}/${result.item.slug}`;
 }
 
 function flattenResults(results: SearchResults | null): FlatResult[] {
@@ -44,17 +46,9 @@ export function SiteHeader({ showSubmitLink = true }: SiteHeaderProps) {
 
   useEffect(() => {
     const trimmed = query.trim().replace(/\s+/g, ' ');
-    if (trimmed.length < 2) {
-      setResults(null);
-      setError('');
-      setLoading(false);
-      setActiveIndex(-1);
-      return;
-    }
+    if (trimmed.length < 2) return;
 
     const controller = new AbortController();
-    setLoading(true);
-    setError('');
     const timer = window.setTimeout(() => {
       fetch(`/api/search?q=${encodeURIComponent(trimmed)}`, { signal: controller.signal })
         .then(async (response) => {
@@ -177,7 +171,17 @@ export function SiteHeader({ showSubmitLink = true }: SiteHeaderProps) {
             value={query}
             autoComplete="off"
             onChange={(event) => {
-              setQuery(event.target.value);
+              const nextQuery = event.target.value;
+              setQuery(nextQuery);
+              if (nextQuery.trim().replace(/\s+/g, ' ').length < 2) {
+                setResults(null);
+                setError('');
+                setLoading(false);
+                setActiveIndex(-1);
+              } else {
+                setLoading(true);
+                setError('');
+              }
               setOpen(true);
             }}
             onFocus={() => setOpen(true)}
@@ -241,10 +245,10 @@ export function SiteHeader({ showSubmitLink = true }: SiteHeaderProps) {
         </div>
       </div>
       <div className="header-actions">
-        {showSubmitLink && (
-          <Link className="submit-link" href="/submit">Submit an action <span aria-hidden="true">↗</span></Link>
-        )}
         <AuthControl />
+        {showSubmitLink && (
+          <Link className="submit-link" href="/submit">Submit an action</Link>
+        )}
       </div>
     </header>
   );

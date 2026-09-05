@@ -5,22 +5,15 @@ import { notFound } from 'next/navigation';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { SiteHeader } from '@/app/site-header';
-import { getPublishedOrganization } from '@/lib/db';
+import { getPublishedOrganizationBySlug } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-type OrganizationPageProps = { params: Promise<{ id: string }> };
-
-function parseOrganizationId(value: string) {
-  if (!/^\d+$/.test(value)) return null;
-  const id = Number(value);
-  return Number.isSafeInteger(id) && id > 0 ? id : null;
-}
+type OrganizationPageProps = { params: Promise<{ slug: string }> };
 
 async function findOrganization(params: OrganizationPageProps['params']) {
-  const { id: value } = await params;
-  const id = parseOrganizationId(value);
-  return id ? getPublishedOrganization(id) : undefined;
+  const { slug } = await params;
+  return getPublishedOrganizationBySlug(slug);
 }
 
 export async function generateMetadata({ params }: OrganizationPageProps): Promise<Metadata> {
@@ -28,11 +21,12 @@ export async function generateMetadata({ params }: OrganizationPageProps): Promi
   if (!organization) return { title: 'Organization not found' };
 
   const description = `View actions from ${organization.name} on Force Against Something.`;
-
+  const url = `/org/${organization.slug}`;
   return {
     title: `${organization.name} | Force Against Something`,
     description,
-    openGraph: { url: `/orgs/${organization.id}`, title: organization.name, description, images: [] },
+    alternates: { canonical: url },
+    openGraph: { url, title: organization.name, description, images: [] },
     twitter: { card: 'summary', title: organization.name, description, images: [] },
   };
 }
@@ -77,18 +71,18 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
               <div className="card-number">{String(index + 1).padStart(2, '0')}</div>
               <div className="card-main">
                 <div className="badges"><span className={`type ${action.type.toLowerCase()}`}>{action.type}</span>{action.urgent && <span className="urgent">Priority</span>}</div>
-                <h3><Link href={`/action/${action.id}`}>{action.title}</Link></h3>
+                <h3><Link href={`/action/${action.issueSlug}/${action.slug}`}>{action.title}</Link></h3>
                 <p>{action.detail}</p>
-                <span className="organization"><Link href={`/issues/${action.issueSlug}`}>{action.issue.toUpperCase()}</Link></span>
+                <span className="organization"><Link href={`/issue/${action.issueSlug}`}>{action.issue.toUpperCase()}</Link></span>
               </div>
-              <div className="card-action"><span>{action.effort}</span><Link href={`/action/${action.id}`} aria-label={`Learn more and take action: ${action.title}`}>TAKE ACTION <b aria-hidden="true">→</b></Link></div>
+              <div className="card-action"><span>{action.effort}</span><Link href={`/action/${action.issueSlug}/${action.slug}`} aria-label={`Learn more and take action: ${action.title}`}>TAKE ACTION <b aria-hidden="true">→</b></Link></div>
             </article>
           ))}
           {organization.actions.length === 0 && <p className="empty-state">This organization has no published actions yet.</p>}
         </div>
       </section>
 
-      <footer><Link className="brand footer-brand" href="/" aria-label="Force Against Something home"><Image src="/footer-wordmark-star.png" alt="Force Against Something" width={620} height={99} unoptimized /></Link><p>Pick an issue. Do your part.</p><div><Link href="/contact">Contact</Link><Link href="/submit">Submit an action</Link></div></footer>
+      <footer><Link className="brand footer-brand" href="/" aria-label="Force Against Something home"><Image src="/footer-wordmark-star.png" alt="Force Against Something" width={620} height={99} unoptimized /></Link><p>Pick an issue. Do your part.</p><div><Link href="/contact">Contact</Link><Link href="/api">API</Link><Link href="/submit">Submit an action</Link></div></footer>
     </main>
   );
 }

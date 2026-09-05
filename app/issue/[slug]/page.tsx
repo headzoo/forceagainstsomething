@@ -21,11 +21,12 @@ export async function generateMetadata({ params }: IssuePageProps): Promise<Meta
   if (!issue) return { title: 'Issue not found' };
 
   const description = issue.detail || `Find ways to take action on ${issue.name}.`;
-
+  const url = `/issue/${issue.slug}`;
   return {
     title: `${issue.name} | Force Against Something`,
     description,
-    openGraph: { url: `/issues/${issue.slug}`, title: issue.name, description, images: [] },
+    alternates: { canonical: url },
+    openGraph: { url, title: issue.name, description, images: [] },
     twitter: { card: 'summary', title: issue.name, description, images: [] },
   };
 }
@@ -71,18 +72,18 @@ export default async function IssuePage({ params }: IssuePageProps) {
               <div className="card-number">{String(index + 1).padStart(2, '0')}</div>
               <div className="card-main">
                 <div className="badges"><span className={`type ${action.type.toLowerCase()}`}>{action.type}</span>{action.urgent && <span className="urgent">Priority</span>}</div>
-                <h3><Link href={`/action/${action.id}`}>{action.title}</Link></h3>
+                <h3><Link href={`/action/${issue.slug}/${action.slug}`}>{action.title}</Link></h3>
                 <p>{action.detail}</p>
-                <span className="organization">BY <Link href={`/orgs/${action.orgId}`}>{action.organization.toUpperCase()}</Link></span>
+                <span className="organization">BY <Link href={`/org/${action.organizationSlug}`}>{action.organization.toUpperCase()}</Link></span>
               </div>
-              <div className="card-action"><span>{action.effort}</span><Link href={`/action/${action.id}`} aria-label={`Learn more and take action: ${action.title}`}>TAKE ACTION <b aria-hidden="true">→</b></Link></div>
+              <div className="card-action"><span>{action.effort}</span><Link href={`/action/${issue.slug}/${action.slug}`} aria-label={`Learn more and take action: ${action.title}`}>TAKE ACTION <b aria-hidden="true">→</b></Link></div>
             </article>
           ))}
           {issue.actions.length === 0 && <p className="empty-state">No published actions for this issue yet.</p>}
         </div>
       </section>
 
-      <footer><Link className="brand footer-brand" href="/" aria-label="Force Against Something home"><Image src="/footer-wordmark-star.png" alt="Force Against Something" width={620} height={99} unoptimized /></Link><p>Pick an issue. Do your part.</p><div><Link href="/contact">Contact</Link><Link href="/submit">Submit an action</Link></div></footer>
+      <footer><Link className="brand footer-brand" href="/" aria-label="Force Against Something home"><Image src="/footer-wordmark-star.png" alt="Force Against Something" width={620} height={99} unoptimized /></Link><p>Pick an issue. Do your part.</p><div><Link href="/contact">Contact</Link><Link href="/api">API</Link><Link href="/submit">Submit an action</Link></div></footer>
     </main>
   );
 }

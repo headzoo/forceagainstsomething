@@ -64,6 +64,13 @@
       "when": 1788616799981,
       "tag": "0008_majestic_trish_tilby",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788621644904,
+      "tag": "0009_skinny_shadow_king",
+      "breakpoints": true
     }
   ]
 }

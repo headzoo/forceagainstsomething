@@ -49,6 +49,14 @@ This project requires Node.js 22.13 or newer and a PostgreSQL database.
 
 Open site [http://localhost:3000](http://localhost:3000) in your browser.
 
+## Public JSON API
+
+Append `.json` to a public action, issue, or organization URL to receive the same published record as JSON:
+
+- `/action/:issueSlug/:actionSlug.json`
+- `/issue/:issueSlug.json` (includes the 20 most recently created published actions)
+- `/org/:organizationSlug.json` (includes the 20 most recently created published actions)
+
 ## Automatic action discovery
 
 The action discovery job searches the web once for each issue and adds genuinely new results to the admin review queue. It reuses an existing organization when its name or website matches. Newly created organization records are named `Supporters of <organization>` to make clear that they are directory-managed profiles, not official accounts.

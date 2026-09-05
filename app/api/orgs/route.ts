@@ -3,6 +3,7 @@ import { orgs } from '@/db/schema';
 import { db } from '@/lib/db';
 import { getMemberSession } from '@/lib/member';
 import { parsePublicHttpUrl } from '@/lib/action-metadata';
+import { uniqueOrganizationSlug } from '@/lib/slugs';
 
 export async function POST(request: Request) {
   const session = await getMemberSession();
@@ -36,6 +37,7 @@ export async function POST(request: Request) {
   try {
     const [organization] = await db.insert(orgs).values({
       ownerUserId: session.user.id,
+      slug: await uniqueOrganizationSlug(name),
       name,
       website,
       description,

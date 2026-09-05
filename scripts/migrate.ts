@@ -99,6 +99,24 @@ const org = (name: string, website?: string, description?: string): SeedOrganiza
   ...(description ? { description } : {}),
 });
 
+function slugifyOrganization(name: string) {
+  return name.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80).replace(/-+$/g, '') || 'organization';
+}
+
+function uniqueSeedOrganizationSlug(name: string, usedSlugs: Set<string>) {
+  const base = slugifyOrganization(name);
+  let candidate = base;
+  let suffix = 2;
+  while (usedSlugs.has(candidate)) {
+    const ending = `-${suffix}`;
+    candidate = `${base.slice(0, 80 - ending.length).replace(/-+$/g, '')}${ending}`;
+    suffix += 1;
+  }
+  usedSlugs.add(candidate);
+  return candidate;
+}
+
 const seedActions: SeedAction[] = missingIssueSlugs.length === 0 ? [
   { issueId: votingRights.id, organization: org('Leadership Conference on Civil and Human Rights'), slug: 'pass-john-lewis-voting-rights-act', type: 'Petition', title: 'Pass the John R. Lewis Voting Rights Advancement Act', detail: 'Tell Congress to restore and strengthen protections against discriminatory voting rules.', description: '## Why this matters\n\nThe John R. Lewis Voting Rights Advancement Act would restore and modernize federal protections against discriminatory voting practices.\n\n## What you can do\n\nAdd your name and urge Congress to pass the bill.', effort: '2 min', href: 'https://civilrights.org/john-lewis-voting-rights-act/', urgent: true, sortOrder: 1 },
   { issueId: votingRights.id, organization: org('Campaign Legal Center'), slug: 'defend-voters-discriminatory-maps', type: 'Lawsuit', title: 'Defend voters from discriminatory maps', detail: 'Support an active case challenging Florida’s 2026 congressional map as an illegal partisan gerrymander.', description: '## About the case\n\nCampaign Legal Center is challenging Florida’s congressional map and working to protect voters from discriminatory district lines.\n\nFollow the case for filings, decisions, and ways to support fair representation.', effort: 'Follow case', href: 'https://campaignlegal.org/cases-actions/fighting-partisan-gerrymandering-florida-thompson-wynn-v-byrd', sortOrder: 2 },
@@ -907,22 +925,29 @@ const seedActions: SeedAction[] = missingIssueSlugs.length === 0 ? [
   },
 ] : [];
 
+const existingOrganizations = await db.select({ id: orgs.id, slug: orgs.slug, name: orgs.name }).from(orgs);
+const organizationsByName = new Map(existingOrganizations.map((organization) => [organization.name, organization]));
+const usedOrganizationSlugs = new Set(existingOrganizations.map((organization) => organization.slug));
+
 for (const action of seedActions) {
-  const organizationValues: typeof orgs.$inferInsert = {
-    name: action.organization.name,
-    ...(action.organization.website ? { website: action.organization.website } : {}),
-    ...(action.organization.description ? { description: action.organization.description } : {}),
-  };
   const organizationUpdate = {
     updatedAt: new Date(),
     ...(action.organization.website ? { website: action.organization.website } : {}),
     ...(action.organization.description ? { description: action.organization.description } : {}),
   };
 
-  const [organization] = await db.insert(orgs).values(organizationValues).onConflictDoUpdate({
-    target: orgs.name,
-    set: organizationUpdate,
-  }).returning({ id: orgs.id });
+  let organization = organizationsByName.get(action.organization.name);
+  if (organization) {
+    await db.update(orgs).set(organizationUpdate).where(inArray(orgs.id, [organization.id]));
+  } else {
+    [organization] = await db.insert(orgs).values({
+      name: action.organization.name,
+      slug: uniqueSeedOrganizationSlug(action.organization.name, usedOrganizationSlugs),
+      ...(action.organization.website ? { website: action.organization.website } : {}),
+      ...(action.organization.description ? { description: action.organization.description } : {}),
+    }).returning({ id: orgs.id, slug: orgs.slug, name: orgs.name });
+    organizationsByName.set(organization.name, organization);
+  }
 
   const values: typeof actions.$inferInsert = {
     issueId: action.issueId,
@@ -944,7 +969,7 @@ for (const action of seedActions) {
   };
 
   await db.insert(actions).values(values).onConflictDoUpdate({
-    target: actions.slug,
+    target: [actions.issueId, actions.slug],
     set: { ...values, updatedAt: new Date() },
   });
 }
