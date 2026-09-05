@@ -38,28 +38,29 @@ export default async function IssuePage({ params }: IssuePageProps) {
     <main className="issue-detail-page">
       <SiteHeader />
 
-      <section className="issue-detail-hero">
-        <div className="issue-detail-heading">
+      <section className="org-detail-hero">
+        <div className="org-detail-heading">
           <Link className="back-link" href="/">← Back to all actions</Link>
           <p className="eyebrow"><span /> ISSUE</p>
           <h1>{issue.name}</h1>
-          {issue.detail && <p>{issue.detail}</p>}
+          {issue.detail && <p className="issue-detail-summary">{issue.detail}</p>}
         </div>
-        <aside className="issue-detail-count">
+        <aside className="action-detail-cta">
           <p className="step">WAYS TO ACT</p>
-          <strong>{String(issue.actions.length).padStart(2, '0')}</strong>
-          <p>published {issue.actions.length === 1 ? 'action' : 'actions'} ready for you.</p>
+          <h2>{String(issue.actions.length).padStart(2, '0')}<br />{issue.actions.length === 1 ? 'action.' : 'actions.'}</h2>
+          <p>Published and ready for you to make a difference.</p>
+          <a className="primary-button" href="#issue-actions">BROWSE ACTIONS <span aria-hidden="true">↓</span></a>
         </aside>
       </section>
 
       {issue.description && (
-        <section className="issue-description-shell">
+        <section className="org-description-shell">
           <div className="action-description-label"><p className="eyebrow"><span /> WHY IT MATTERS</p><p>{issue.name}</p></div>
           <article className="markdown-content"><Markdown remarkPlugins={[remarkGfm]}>{issue.description}</Markdown></article>
         </section>
       )}
 
-      <section className="issue-actions-section">
+      <section className="org-actions-section" id="issue-actions">
         <div className="section-heading">
           <div><p className="eyebrow"><span /> MAKE YOUR MOVE</p><h2>Take action</h2></div>
           <p>Every listing gives you the context, organization, and direct path you need to make a difference on {issue.name}.</p>
