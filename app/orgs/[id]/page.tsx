@@ -79,7 +79,7 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
                 <div className="badges"><span className={`type ${action.type.toLowerCase()}`}>{action.type}</span>{action.urgent && <span className="urgent">Priority</span>}</div>
                 <h3><Link href={`/action/${action.id}`}>{action.title}</Link></h3>
                 <p>{action.detail}</p>
-                <span className="organization">{action.issue.toUpperCase()}</span>
+                <span className="organization"><Link href={`/issues/${action.issueSlug}`}>{action.issue.toUpperCase()}</Link></span>
               </div>
               <div className="card-action"><span>{action.effort}</span><Link href={`/action/${action.id}`} aria-label={`Learn more and take action: ${action.title}`}>TAKE ACTION <b aria-hidden="true">→</b></Link></div>
             </article>

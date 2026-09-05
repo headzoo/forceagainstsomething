@@ -17,6 +17,8 @@ export const issues = pgTable('issues', {
   id: bigserial('id', { mode: 'number' }).primaryKey(),
   slug: text('slug').notNull().unique(),
   name: text('name').notNull(),
+  detail: text('detail').notNull().default(''),
+  description: text('description').notNull().default(''),
   status: issueStatus('status').notNull().default('planned'),
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

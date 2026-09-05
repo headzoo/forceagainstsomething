@@ -115,7 +115,7 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
 
       <section className="actions-section" id="actions">
         <div className="section-heading">
-          <div><p className="eyebrow"><span /> CURRENT FOCUS</p><h2>{selectedIssue?.name ?? 'Actions'}</h2></div>
+          <div><p className="eyebrow"><span /> CURRENT FOCUS</p><h2>{selectedIssue ? <Link className="issue-heading-link" href={`/issues/${selectedIssue.slug}`}>{selectedIssue.name}</Link> : 'Actions'}</h2></div>
           <p>Every listing gives you the context, organization, and direct path you need to act. We check ownership, activity, and a clear path to impact.</p>
         </div>
         <div className="filter-row" role="group" aria-label="Filter actions by type">

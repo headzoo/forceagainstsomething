@@ -45,7 +45,11 @@ export default async function ActionPage({ params }: ActionPageProps) {
 
       <section className="action-detail-hero">
         <div className="action-detail-heading">
-          <Link className="back-link" href="/">← Back to all actions</Link>
+          <nav className="breadcrumb" aria-label="Breadcrumb">
+            <Link href="/">All Actions</Link>
+            <span aria-hidden="true">–</span>
+            <Link href={`/issues/${action.issueSlug}`}>{action.issue}</Link>
+          </nav>
           <div className="badges"><span className={`type ${action.type.toLowerCase()}`}>{action.type}</span>{action.urgent && <span className="urgent">Priority</span>}</div>
           <h1>{action.title}</h1>
           <p>{action.detail}</p>

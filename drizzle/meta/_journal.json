@@ -50,6 +50,13 @@
       "when": 1788541694886,
       "tag": "0006_gigantic_unicorn",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788566372635,
+      "tag": "0007_dry_toad_men",
+      "breakpoints": true
     }
   ]
 }

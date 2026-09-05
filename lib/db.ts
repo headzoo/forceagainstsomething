@@ -16,7 +16,11 @@ export type PublishedOrganization = {
   name: string;
   website: string | null;
   description: string;
-  actions: Array<PublicAction & { issue: string }>;
+  actions: Array<PublicAction & { issue: string; issueSlug: string }>;
+};
+
+export type PublishedIssue = Issue & {
+  actions: DirectoryAction[];
 };
 
 export type SearchActionResult = {
@@ -78,6 +82,7 @@ export async function getPublishedAction(id: number) {
       ...actionColumns,
       organization: orgs.name,
       issue: issues.name,
+      issueSlug: issues.slug,
     })
     .from(actions)
     .innerJoin(orgs, eq(actions.orgId, orgs.id))
@@ -92,6 +97,29 @@ export async function getPublishedAction(id: number) {
   return action;
 }
 
+export async function getPublishedIssue(slug: string): Promise<PublishedIssue | undefined> {
+  const [issue] = await db
+    .select()
+    .from(issues)
+    .where(eq(issues.slug, slug))
+    .limit(1);
+
+  if (!issue) return undefined;
+
+  const actionRows = await db
+    .select({ ...actionColumns, organization: orgs.name })
+    .from(actions)
+    .innerJoin(orgs, eq(actions.orgId, orgs.id))
+    .where(and(
+      eq(actions.issueId, issue.id),
+      eq(actions.approved, true),
+      eq(actions.published, true),
+    ))
+    .orderBy(desc(actions.urgent), asc(actions.sortOrder), asc(actions.title));
+
+  return { ...issue, actions: actionRows };
+}
+
 export async function getPublishedOrganization(id: number): Promise<PublishedOrganization | undefined> {
   const [organization] = await db
     .select({ id: orgs.id, name: orgs.name, website: orgs.website, description: orgs.description })
@@ -102,7 +130,7 @@ export async function getPublishedOrganization(id: number): Promise<PublishedOrg
   if (!organization) return undefined;
 
   const actionRows = await db
-    .select({ ...actionColumns, issue: issues.name })
+    .select({ ...actionColumns, issue: issues.name, issueSlug: issues.slug })
     .from(actions)
     .innerJoin(issues, eq(actions.issueId, issues.id))
     .where(and(
