@@ -6,22 +6,26 @@ import { useEffect, useMemo, useState } from 'react';
 import ctaImage from '@/assets/cta.jpg';
 import type { DirectoryAction, Issue } from '@/lib/db';
 import { authClient } from '@/lib/auth-client';
+import { BookmarkButton } from './action-bookmark-button';
 import { SiteHeader } from './site-header';
 
 type ActionType = DirectoryAction['type'];
 const filters: Array<'All' | ActionType> = ['All', 'Petition', 'Lawsuit', 'Campaign'];
+const selectedIssueStorageKey = 'forceAgainstSomething:selectedIssueSlug';
+const minimumIssuePlaceholderCount = 8;
 
 export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions: DirectoryAction[] }) {
   const { data: session } = authClient.useSession();
   const userId = session?.user.id;
   const initialIssue = issues.find((issue) => issue.status === 'active') ?? issues[0];
-  const [issueSlug, setIssueSlug] = useState(initialIssue?.slug ?? '');
+  const initialIssueSlug = initialIssue?.slug ?? '';
+  const [issueSlug, setIssueSlug] = useState<string | null>(null);
   const [filter, setFilter] = useState<(typeof filters)[number]>('All');
   const [bookmarks, setBookmarks] = useState<{ userId: string; actionIds: Set<number> } | null>(null);
   const [updatingBookmarks, setUpdatingBookmarks] = useState<Set<number>>(new Set());
   const [bookmarkError, setBookmarkError] = useState('');
   const bookmarkedActionIds = bookmarks && bookmarks.userId === userId ? bookmarks.actionIds : new Set<number>();
-  const selectedIssue = issues.find((issue) => issue.slug === issueSlug) ?? initialIssue;
+  const selectedIssue = issueSlug ? issues.find((issue) => issue.slug === issueSlug) ?? initialIssue : null;
   const actionCountByIssueId = useMemo(() => {
     const counts = new Map<number, number>();
     actions.forEach((action) => counts.set(action.issueId, (counts.get(action.issueId) ?? 0) + 1));
@@ -35,6 +39,33 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
     () => filter === 'All' ? issueActions : issueActions.filter((item) => item.type === filter),
     [filter, issueActions],
   );
+
+  useEffect(() => {
+    let restoredSlug = initialIssueSlug;
+
+    try {
+      const storedSlug = window.localStorage.getItem(selectedIssueStorageKey);
+      const storedIssue = issues.find((issue) => issue.slug === storedSlug && issue.status !== 'planned');
+
+      if (storedIssue) restoredSlug = storedIssue.slug;
+      else if (storedSlug) window.localStorage.removeItem(selectedIssueStorageKey);
+    } finally {
+      setIssueSlug(restoredSlug);
+    }
+  }, [initialIssueSlug, issues]);
+
+  useEffect(() => {
+    if (!issueSlug) return;
+
+    const selected = issues.find((issue) => issue.slug === issueSlug && issue.status !== 'planned');
+    if (!selected) return;
+
+    try {
+      window.localStorage.setItem(selectedIssueStorageKey, selected.slug);
+    } catch {
+      // Ignore storage failures so the selector still works when browser storage is restricted.
+    }
+  }, [issueSlug, issues]);
 
   useEffect(() => {
     if (!userId) return;
@@ -108,70 +139,74 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
         <div className="issue-card">
           <p className="step">YOUR ISSUE / 01</p>
           <p className="issue-card-prompt" id="issue-picker-label">What are you fighting for?</p>
-          <div className="issue-options" role="group" aria-labelledby="issue-picker-label">
-            {issues.map((issue) => {
-              const isSelected = selectedIssue?.id === issue.id;
-              const isPlanned = issue.status === 'planned';
-              return (
-                <button
-                  key={issue.id}
-                  type="button"
-                  className={`issue-option${isSelected ? ' active' : ''}`}
-                  disabled={isPlanned}
-                  aria-pressed={isSelected}
-                  onClick={() => { setIssueSlug(issue.slug); setFilter('All'); }}
-                >
-                  <span>{issue.name}</span>
-                  <small>{isPlanned ? 'Coming next' : `${actionCountByIssueId.get(issue.id) ?? 0} actions`}</small>
-                </button>
-              );
-            })}
-          </div>
-          <p className="microcopy">{issueActions.length} verified actions · Updated September 2026</p>
+          {issueSlug === null ? (
+            <div className="issue-options issue-options-loading" aria-hidden="true">
+              {Array.from({ length: Math.max(minimumIssuePlaceholderCount, issues.length) }, (_, index) => (
+                <span className="issue-option-placeholder" key={index} />
+              ))}
+            </div>
+          ) : selectedIssue && (
+            <div className="issue-options" role="group" aria-labelledby="issue-picker-label">
+              {issues.map((issue) => {
+                const isSelected = selectedIssue.id === issue.id;
+                const isPlanned = issue.status === 'planned';
+                return (
+                  <button
+                    key={issue.id}
+                    type="button"
+                    className={`issue-option${isSelected ? ' active' : ''}`}
+                    disabled={isPlanned}
+                    aria-pressed={isSelected}
+                    onClick={() => { setIssueSlug(issue.slug); setFilter('All'); }}
+                  >
+                    <span>{issue.name}</span>
+                    <small>{isPlanned ? 'Coming next' : `${actionCountByIssueId.get(issue.id) ?? 0} actions`}</small>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          {selectedIssue && <p className="microcopy">{issueActions.length} verified actions · Updated September 2026</p>}
         </div>
       </section>
 
-      <section className="actions-section" id="actions">
-        <div className="section-heading">
-          <div><p className="eyebrow"><span /> CURRENT FOCUS</p><h2>{selectedIssue ? <Link className="issue-heading-link" href={`/issues/${selectedIssue.slug}`}>{selectedIssue.name}</Link> : 'Actions'}</h2></div>
-          <p>Every listing gives you the context, organization, and direct path you need to act. We check ownership, activity, and a clear path to impact.</p>
-        </div>
-        <div className="filter-row" role="group" aria-label="Filter actions by type">
-          {filters.map((item) => <button key={item} onClick={() => setFilter(item)} className={filter === item ? 'active' : ''} aria-pressed={filter === item}>{item} {item !== 'All' && <sup>{issueActions.filter((action) => action.type === item).length}</sup>}</button>)}
-        </div>
-        <div className="action-list" aria-live="polite">
-          {visible.map((action, index) => (
-            <article className="action-card" key={action.id}>
-              <div className="card-number">{String(index + 1).padStart(2, '0')}</div>
-              <div className="card-main">
-                <div className="badges"><span className={`type ${action.type.toLowerCase()}`}>{action.type}</span>{action.urgent && <span className="urgent">Priority</span>}</div>
-                <div className="action-title-row">
-                  {session && (
-                    <button
-                      className={`bookmark-button${bookmarkedActionIds.has(action.id) ? ' bookmarked' : ''}`}
-                      type="button"
-                      aria-label={`${bookmarkedActionIds.has(action.id) ? 'Remove bookmark from' : 'Bookmark'} ${action.title}`}
-                      aria-pressed={bookmarkedActionIds.has(action.id)}
-                      disabled={updatingBookmarks.has(action.id)}
-                      onClick={() => toggleBookmark(action.id)}
-                    >
-                      <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M6.75 3.75h10.5v16.5L12 16.7l-5.25 3.55V3.75Z" />
-                      </svg>
-                    </button>
-                  )}
-                  <h3><Link href={`/action/${action.id}`}>{action.title}</Link></h3>
+      {selectedIssue && (
+        <section className="actions-section" id="actions">
+          <div className="section-heading">
+            <div><p className="eyebrow"><span /> CURRENT FOCUS</p><h2><Link className="issue-heading-link" href={`/issues/${selectedIssue.slug}`}>{selectedIssue.name}</Link></h2></div>
+            <p>Every listing gives you the context, organization, and direct path you need to act. We check ownership, activity, and a clear path to impact.</p>
+          </div>
+          <div className="filter-row" role="group" aria-label="Filter actions by type">
+            {filters.map((item) => <button key={item} onClick={() => setFilter(item)} className={filter === item ? 'active' : ''} aria-pressed={filter === item}>{item} {item !== 'All' && <sup>{issueActions.filter((action) => action.type === item).length}</sup>}</button>)}
+          </div>
+          <div className="action-list" aria-live="polite">
+            {visible.map((action, index) => (
+              <article className="action-card" key={action.id}>
+                <div className="card-number">{String(index + 1).padStart(2, '0')}</div>
+                <div className="card-main">
+                  <div className="badges"><span className={`type ${action.type.toLowerCase()}`}>{action.type}</span>{action.urgent && <span className="urgent">Priority</span>}</div>
+                  <div className="action-title-row">
+                    {session && (
+                      <BookmarkButton
+                        actionTitle={action.title}
+                        bookmarked={bookmarkedActionIds.has(action.id)}
+                        disabled={updatingBookmarks.has(action.id)}
+                        onClick={() => toggleBookmark(action.id)}
+                      />
+                    )}
+                    <h3><Link href={`/action/${action.id}`}>{action.title}</Link></h3>
+                  </div>
+                  <p>{action.detail}</p>
+                  <span className="organization">BY <Link href={`/orgs/${action.orgId}`}>{action.organization.toUpperCase()}</Link></span>
                 </div>
-                <p>{action.detail}</p>
-                <span className="organization">BY <Link href={`/orgs/${action.orgId}`}>{action.organization.toUpperCase()}</Link></span>
-              </div>
-              <div className="card-action"><span>{action.effort}</span><Link href={`/action/${action.id}`} aria-label={`Learn more and take action: ${action.title}`}>TAKE ACTION <b aria-hidden="true">→</b></Link></div>
-            </article>
-          ))}
-          {visible.length === 0 && <p className="empty-state">No published actions match this filter yet.</p>}
-          {bookmarkError && <p className="bookmark-error" role="alert">{bookmarkError}</p>}
-        </div>
-      </section>
+                <div className="card-action"><span>{action.effort}</span><Link href={`/action/${action.id}`} aria-label={`Learn more and take action: ${action.title}`}>TAKE ACTION <b aria-hidden="true">→</b></Link></div>
+              </article>
+            ))}
+            {visible.length === 0 && <p className="empty-state">No published actions match this filter yet.</p>}
+            {bookmarkError && <p className="bookmark-error" role="alert">{bookmarkError}</p>}
+          </div>
+        </section>
+      )}
 
       <section className="trust-band"><div className="trust-mark" aria-hidden="true"><span>✓</span></div><div><p className="eyebrow"><span /> OUR STANDARD</p><h2>Curated for action,<br />not attention.</h2></div><p>We prioritize credible organizations, active efforts, transparent asks, and direct links. No outrage bait. No pay-to-play placement. Just useful ways to help.</p></section>
       <footer><a className="brand footer-brand" href="#top" aria-label="Force Against Something home"><Image src="/footer-wordmark-star.png" alt="Force Against Something" width={620} height={99} unoptimized /></a><p>Pick an issue. Do your part.</p><div><Link href="/contact">Contact</Link><Link href="/submit">Submit an action</Link></div></footer>

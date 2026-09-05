@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { ActionBookmarkButton } from '@/app/action-bookmark-button';
 import { SiteHeader } from '@/app/site-header';
 import { getPublishedAction } from '@/lib/db';
 
@@ -74,7 +75,10 @@ export default async function ActionPage({ params }: ActionPageProps) {
               <li aria-current="page"><span>{action.title}</span></li>
             </ol>
           </nav>
-          <div className="badges"><span className={`type ${action.type.toLowerCase()}`}>{action.type}</span>{action.urgent && <span className="urgent">Priority</span>}</div>
+          <div className="badges action-detail-badges">
+            <ActionBookmarkButton actionId={action.id} actionTitle={action.title} />
+            <span className={`type ${action.type.toLowerCase()}`}>{action.type}</span>{action.urgent && <span className="urgent">Priority</span>}
+          </div>
           <h1>{action.title}</h1>
           <p>{action.detail}</p>
           <span className="organization">BY <Link href={`/orgs/${action.orgId}`}>{action.organization.toUpperCase()}</Link></span>

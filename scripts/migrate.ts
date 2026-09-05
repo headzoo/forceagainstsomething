@@ -1,7 +1,7 @@
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 import { migrate } from 'drizzle-orm/neon-http/migrator';
-import { count, sql } from 'drizzle-orm';
+import { count, inArray } from 'drizzle-orm';
 import { actions, issues, orgs } from '../db/schema';
 
 const connectionString = process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL;
@@ -15,46 +15,63 @@ const db = drizzle(client);
 
 await migrate(db, { migrationsFolder: './drizzle' });
 
-const issueRows = await db.insert(issues).values([
+const issueSeeds: Array<typeof issues.$inferInsert> = [
   { slug: 'voting-rights', name: 'Voting rights', status: 'active', sortOrder: 1 },
   { slug: 'criminal-justice', name: 'Criminal justice', status: 'active', sortOrder: 2 },
   { slug: 'reproductive-freedom', name: 'Reproductive freedom', status: 'active', sortOrder: 3 },
   { slug: 'climate-justice', name: 'Climate justice', status: 'active', sortOrder: 4 },
-  { slug: 'immigrant-rights', name: 'Immigrant rights', status: 'active', sortOrder: 5 },
-  { slug: 'lgbtq-rights', name: 'LGBTQ+ rights', status: 'active', sortOrder: 6 },
-  { slug: 'housing-justice', name: 'Housing justice', status: 'active', sortOrder: 7 },
-  { slug: 'disability-rights', name: 'Disability rights', status: 'active', sortOrder: 8 },
-  { slug: 'workers-rights', name: 'Workers’ rights', status: 'active', sortOrder: 9 },
-  { slug: 'gun-violence', name: 'Gun violence', status: 'active', sortOrder: 10 },
-  { slug: 'indigenous-rights', name: 'Indigenous rights', status: 'active', sortOrder: 11 },
-  { slug: 'digital-rights', name: 'Digital rights', status: 'active', sortOrder: 12 },
-  { slug: 'education-equity', name: 'Education equity', status: 'active', sortOrder: 13 },
-]).onConflictDoUpdate({
-  target: issues.slug,
-  set: {
-    name: sql`excluded.name`,
-    status: sql`excluded.status`,
-    sortOrder: sql`excluded.sort_order`,
-    updatedAt: new Date(),
+  {
+    slug: 'racial-justice',
+    name: 'Racial justice',
+    detail: 'Fight discrimination and unequal treatment in voting, housing, policing, schools, healthcare, workplaces, and public life.',
+    description: '## Why this matters\n\nRacial justice work protects the civil and human rights of Black, Latino, Asian American, Pacific Islander, Middle Eastern, and other communities of color facing discrimination and unequal treatment.\n\nThis issue includes action on equal protection, voting access, fair housing, school equity, healthcare access, language access, anti-hate protections, and accountability when public or private systems reinforce racial harm.\n\n## What you can do\n\nSupport organizations led by affected communities, back litigation and policy campaigns that enforce civil-rights protections, and take direct action against discrimination where it shows up.',
+    status: 'active',
+    sortOrder: 5,
   },
-}).returning({ id: issues.id, slug: issues.slug, status: issues.status, sortOrder: issues.sortOrder });
+  { slug: 'immigrant-rights', name: 'Immigrant rights', status: 'active', sortOrder: 6 },
+  { slug: 'lgbtq-rights', name: 'LGBTQ+ rights', status: 'active', sortOrder: 7 },
+  { slug: 'housing-justice', name: 'Housing justice', status: 'active', sortOrder: 8 },
+  { slug: 'disability-rights', name: 'Disability rights', status: 'active', sortOrder: 9 },
+  { slug: 'workers-rights', name: 'Workers’ rights', status: 'active', sortOrder: 10 },
+  { slug: 'gun-violence', name: 'Gun violence', status: 'active', sortOrder: 11 },
+  { slug: 'indigenous-rights', name: 'Indigenous rights', status: 'active', sortOrder: 12 },
+  { slug: 'digital-rights', name: 'Digital rights', status: 'active', sortOrder: 13 },
+  { slug: 'education-equity', name: 'Education equity', status: 'active', sortOrder: 14 },
+];
 
-const votingRights = issueRows.find((issue) => issue.slug === 'voting-rights');
-const criminalJustice = issueRows.find((issue) => issue.slug === 'criminal-justice');
-const reproductiveFreedom = issueRows.find((issue) => issue.slug === 'reproductive-freedom');
-const climateJustice = issueRows.find((issue) => issue.slug === 'climate-justice');
-const immigrantRights = issueRows.find((issue) => issue.slug === 'immigrant-rights');
-const lgbtqRights = issueRows.find((issue) => issue.slug === 'lgbtq-rights');
-const housingJustice = issueRows.find((issue) => issue.slug === 'housing-justice');
-const disabilityRights = issueRows.find((issue) => issue.slug === 'disability-rights');
-const workersRights = issueRows.find((issue) => issue.slug === 'workers-rights');
-const gunViolence = issueRows.find((issue) => issue.slug === 'gun-violence');
-const indigenousRights = issueRows.find((issue) => issue.slug === 'indigenous-rights');
-const digitalRights = issueRows.find((issue) => issue.slug === 'digital-rights');
-const educationEquity = issueRows.find((issue) => issue.slug === 'education-equity');
-if (!votingRights || !criminalJustice || !reproductiveFreedom || !climateJustice || !immigrantRights || !lgbtqRights || !housingJustice || !disabilityRights || !workersRights || !gunViolence || !indigenousRights || !digitalRights || !educationEquity) {
-  throw new Error('An active issue was not created.');
+const [{ issueCount: issueCountBeforeSeed }] = await db.select({ issueCount: count() }).from(issues);
+
+if (issueCountBeforeSeed === 0) {
+  await db.insert(issues).values(issueSeeds).onConflictDoNothing({ target: issues.slug });
 }
+
+const issueRows = await db
+  .select({ id: issues.id, slug: issues.slug, status: issues.status, sortOrder: issues.sortOrder })
+  .from(issues)
+  .where(inArray(issues.slug, issueSeeds.map((issue) => issue.slug)));
+
+const placeholderIssue = { id: 0, slug: '', status: 'planned' as const, sortOrder: 0 };
+const missingIssueSlugs = issueSeeds
+  .map((issue) => issue.slug)
+  .filter((slug) => !issueRows.some((issue) => issue.slug === slug));
+
+if (missingIssueSlugs.length > 0) {
+  console.warn(`Skipping seed actions because these issue slugs are not present: ${missingIssueSlugs.join(', ')}`);
+}
+
+const votingRights = issueRows.find((issue) => issue.slug === 'voting-rights') ?? placeholderIssue;
+const criminalJustice = issueRows.find((issue) => issue.slug === 'criminal-justice') ?? placeholderIssue;
+const reproductiveFreedom = issueRows.find((issue) => issue.slug === 'reproductive-freedom') ?? placeholderIssue;
+const climateJustice = issueRows.find((issue) => issue.slug === 'climate-justice') ?? placeholderIssue;
+const immigrantRights = issueRows.find((issue) => issue.slug === 'immigrant-rights') ?? placeholderIssue;
+const lgbtqRights = issueRows.find((issue) => issue.slug === 'lgbtq-rights') ?? placeholderIssue;
+const housingJustice = issueRows.find((issue) => issue.slug === 'housing-justice') ?? placeholderIssue;
+const disabilityRights = issueRows.find((issue) => issue.slug === 'disability-rights') ?? placeholderIssue;
+const workersRights = issueRows.find((issue) => issue.slug === 'workers-rights') ?? placeholderIssue;
+const gunViolence = issueRows.find((issue) => issue.slug === 'gun-violence') ?? placeholderIssue;
+const indigenousRights = issueRows.find((issue) => issue.slug === 'indigenous-rights') ?? placeholderIssue;
+const digitalRights = issueRows.find((issue) => issue.slug === 'digital-rights') ?? placeholderIssue;
+const educationEquity = issueRows.find((issue) => issue.slug === 'education-equity') ?? placeholderIssue;
 
 type SeedOrganization = {
   name: string;
@@ -82,7 +99,7 @@ const org = (name: string, website?: string, description?: string): SeedOrganiza
   ...(description ? { description } : {}),
 });
 
-const seedActions: SeedAction[] = [
+const seedActions: SeedAction[] = missingIssueSlugs.length === 0 ? [
   { issueId: votingRights.id, organization: org('Leadership Conference on Civil and Human Rights'), slug: 'pass-john-lewis-voting-rights-act', type: 'Petition', title: 'Pass the John R. Lewis Voting Rights Advancement Act', detail: 'Tell Congress to restore and strengthen protections against discriminatory voting rules.', description: '## Why this matters\n\nThe John R. Lewis Voting Rights Advancement Act would restore and modernize federal protections against discriminatory voting practices.\n\n## What you can do\n\nAdd your name and urge Congress to pass the bill.', effort: '2 min', href: 'https://civilrights.org/john-lewis-voting-rights-act/', urgent: true, sortOrder: 1 },
   { issueId: votingRights.id, organization: org('Campaign Legal Center'), slug: 'defend-voters-discriminatory-maps', type: 'Lawsuit', title: 'Defend voters from discriminatory maps', detail: 'Support an active case challenging Florida’s 2026 congressional map as an illegal partisan gerrymander.', description: '## About the case\n\nCampaign Legal Center is challenging Florida’s congressional map and working to protect voters from discriminatory district lines.\n\nFollow the case for filings, decisions, and ways to support fair representation.', effort: 'Follow case', href: 'https://campaignlegal.org/cases-actions/fighting-partisan-gerrymandering-florida-thompson-wynn-v-byrd', sortOrder: 2 },
   { issueId: votingRights.id, organization: org('Common Cause'), slug: 'join-local-voting-rights-team', type: 'Campaign', title: 'Join a local voting rights team', detail: 'Get trained to protect elections, contact lawmakers, and organize in your community.', description: '## Make an impact locally\n\nJoin volunteers working in their communities to protect elections and expand access to the ballot. Opportunities can include voter education, contacting lawmakers, and election protection.', effort: 'Volunteer', href: 'https://www.commoncause.org/articles/why-do-people-volunteer-to-help-with-elections/', sortOrder: 3 },
@@ -888,7 +905,7 @@ const seedActions: SeedAction[] = [
     href: 'https://edtrust.org/press-room/edtrust-national-edtrust-state-offices-and-state-coalition-partners-fy27-labor-health-and-human-services-education-and-related-agencies-appropriations-priorities/',
     sortOrder: 5,
   },
-];
+] : [];
 
 for (const action of seedActions) {
   const organizationValues: typeof orgs.$inferInsert = {
