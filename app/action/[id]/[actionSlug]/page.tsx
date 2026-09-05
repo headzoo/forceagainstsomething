@@ -31,6 +31,20 @@ function formatCreatedDate(value: Date | string) {
   }).format(date);
 }
 
+function splitTitleEnding(title: string) {
+  const trimmedTitle = title.trim();
+  const finalSpaceIndex = trimmedTitle.lastIndexOf(' ');
+
+  if (finalSpaceIndex === -1) {
+    return { titleStart: '', titleEnd: trimmedTitle };
+  }
+
+  return {
+    titleStart: trimmedTitle.slice(0, finalSpaceIndex + 1),
+    titleEnd: trimmedTitle.slice(finalSpaceIndex + 1),
+  };
+}
+
 async function findAction(params: ActionPageProps['params']) {
   const { id: issueSlug, actionSlug } = await params;
   return getPublishedActionBySlugs(issueSlug, actionSlug);
@@ -54,6 +68,7 @@ export default async function ActionPage({ params }: ActionPageProps) {
   const action = await findAction(params);
   if (!action) notFound();
   const createdDate = formatCreatedDate(action.createdAt);
+  const { titleStart, titleEnd } = splitTitleEnding(action.title);
 
   return (
     <main className="action-detail-page">
@@ -68,11 +83,16 @@ export default async function ActionPage({ params }: ActionPageProps) {
               <li aria-current="page"><span>{action.title}</span></li>
             </ol>
           </nav>
-          <div className="badges action-detail-badges">
+          <div className="action-detail-badges">
             <ActionLikeButton actionId={action.id} actionTitle={action.title} />
-            <span className={`type ${action.type.toLowerCase()}`}>{action.type}</span>{action.urgent && <span className="urgent">Priority</span>}
+            <span className="action-detail-pill-row">
+              <span className="type-pill">{action.type}</span>
+              {action.urgent && <span className="type-pill urgent">Priority</span>}
+            </span>
           </div>
-          <h1>{action.title}</h1>
+          <h1>
+            {titleStart}<span className="action-detail-title-ending">{titleEnd}<Image className="action-detail-title-star" src="/action-detail-title-star.png" alt="" width={99} height={99} aria-hidden="true" unoptimized /></span>
+          </h1>
           <p>{action.detail}</p>
           <span className="organization">BY <Link href={`/o/${action.organizationSlug}`}>{action.organization.toUpperCase()}</Link></span>
         </div>

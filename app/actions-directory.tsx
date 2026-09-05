@@ -14,6 +14,20 @@ const filters: Array<'All' | ActionType> = ['All', 'Petition', 'Lawsuit', 'Campa
 const selectedIssueStorageKey = 'forceAgainstSomething:selectedIssueSlug';
 const minimumIssuePlaceholderCount = 8;
 
+function splitHeadingEnding(heading: string) {
+  const trimmedHeading = heading.trim();
+  const finalSpaceIndex = trimmedHeading.lastIndexOf(' ');
+
+  if (finalSpaceIndex === -1) {
+    return { headingStart: '', headingEnd: trimmedHeading };
+  }
+
+  return {
+    headingStart: trimmedHeading.slice(0, finalSpaceIndex + 1),
+    headingEnd: trimmedHeading.slice(finalSpaceIndex + 1),
+  };
+}
+
 export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions: DirectoryAction[] }) {
   const { data: session } = authClient.useSession();
   const userId = session?.user.id;
@@ -26,6 +40,7 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
   const [likeError, setLikeError] = useState('');
   const likedActionIds = likes && likes.userId === userId ? likes.actionIds : new Set<number>();
   const selectedIssue = issueSlug ? issues.find((issue) => issue.slug === issueSlug) ?? initialIssue : null;
+  const selectedIssueHeading = selectedIssue ? splitHeadingEnding(selectedIssue.name) : null;
   const issueActions = useMemo(
     () => actions.filter((action) => action.issueId === selectedIssue?.id),
     [actions, selectedIssue?.id],
@@ -167,7 +182,7 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
       {selectedIssue && (
         <section className="actions-section" id="actions">
           <div className="section-heading">
-            <div><p className="eyebrow"><span /> CURRENT FOCUS</p><h2><Link className="issue-heading-link" href={`/i/${selectedIssue.slug}`}>{selectedIssue.name}</Link></h2></div>
+            <div><p className="eyebrow"><span /> CURRENT FOCUS</p><h2 className="homepage-issue-heading"><Link className="issue-heading-link" href={`/i/${selectedIssue.slug}`}>{selectedIssueHeading?.headingStart}<span className="heading-end-lockup">{selectedIssueHeading?.headingEnd}<Image className="heading-end-star" src="/homepage-issue-heading-star.png" alt="" width={99} height={99} aria-hidden="true" unoptimized /></span></Link></h2></div>
             <p>Every listing gives you the context, organization, and direct path you need to act. We check ownership, activity, and a clear path to impact.</p>
           </div>
           <div className="filter-row" role="group" aria-label="Filter actions by type">

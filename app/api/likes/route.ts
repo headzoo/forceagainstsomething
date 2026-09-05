@@ -1,6 +1,6 @@
 import { and, eq } from 'drizzle-orm';
 import { actionLikes, actions } from '@/db/schema';
-import { db } from '@/lib/db';
+import { db, publicActionVisibilityCondition } from '@/lib/db';
 import { getMemberSession } from '@/lib/member';
 
 function readActionId(body: unknown) {
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   const [action] = await db
     .select({ id: actions.id })
     .from(actions)
-    .where(and(eq(actions.id, actionId), eq(actions.approved, true), eq(actions.published, true)))
+    .where(and(eq(actions.id, actionId), publicActionVisibilityCondition()))
     .limit(1);
 
   if (!action) return Response.json({ error: 'That action is not available.' }, { status: 404 });

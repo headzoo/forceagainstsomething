@@ -64,6 +64,8 @@ export const actions = pgTable('actions', {
   approvedAt: timestamp('approved_at', { withTimezone: true }),
   approvedByUserId: text('approved_by_user_id').references(() => user.id, { onDelete: 'set null' }),
   published: boolean('published').notNull().default(false),
+  startAt: timestamp('start_at', { withTimezone: true }),
+  endAt: timestamp('end_at', { withTimezone: true }),
   sortOrder: integer('sort_order').notNull().default(0),
   searchTsv: tsvector('search_tsv').generatedAlwaysAs(sql`
     setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
@@ -74,6 +76,9 @@ export const actions = pgTable('actions', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   index('actions_issue_approved_published_idx').on(table.issueId, table.approved, table.published, table.sortOrder),
+  index('actions_visibility_idx').on(table.approved, table.published, table.startAt, table.endAt, table.sortOrder),
+  index('actions_issue_visibility_idx').on(table.issueId, table.approved, table.published, table.startAt, table.endAt, table.sortOrder),
+  index('actions_org_visibility_idx').on(table.orgId, table.approved, table.published, table.startAt, table.endAt, table.sortOrder),
   index('actions_org_idx').on(table.orgId),
   index('actions_submitter_idx').on(table.submittedByUserId),
   uniqueIndex('actions_issue_slug_unique').on(table.issueId, table.slug),

@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless';
-import { and, asc, desc, eq, exists, getTableColumns, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, exists, getTableColumns, gte, isNull, lte, or, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from '@/db/schema';
 import { actionLikes, actions, issues, orgs, type ActionRecord, type Issue } from '@/db/schema';
@@ -56,6 +56,16 @@ if (!connectionString) {
 
 export const db = drizzle(neon(connectionString), { schema });
 
+export function publicActionVisibilityCondition() {
+  const now = sql<Date>`now()`;
+  return and(
+    eq(actions.approved, true),
+    eq(actions.published, true),
+    or(isNull(actions.startAt), lte(actions.startAt, now)),
+    or(isNull(actions.endAt), gte(actions.endAt, now)),
+  );
+}
+
 export async function getDirectoryData() {
   const [issueRows, actionRows] = await Promise.all([
     db.select().from(issues).orderBy(asc(issues.sortOrder), asc(issues.name)),
@@ -64,7 +74,7 @@ export async function getDirectoryData() {
       .from(actions)
       .innerJoin(orgs, eq(actions.orgId, orgs.id))
       .innerJoin(issues, eq(actions.issueId, issues.id))
-      .where(and(eq(actions.approved, true), eq(actions.published, true)))
+      .where(publicActionVisibilityCondition())
       .orderBy(desc(actions.urgent), asc(actions.sortOrder), asc(actions.title)),
   ]);
 
@@ -90,8 +100,7 @@ export async function getLikedActions(userId: string): Promise<LikedAction[]> {
     .innerJoin(issues, eq(actions.issueId, issues.id))
     .where(and(
       eq(actionLikes.userId, userId),
-      eq(actions.approved, true),
-      eq(actions.published, true),
+      publicActionVisibilityCondition(),
     ))
     .orderBy(desc(actionLikes.createdAt));
 }
@@ -119,8 +128,7 @@ export async function getPublishedAction(id: number) {
     .innerJoin(issues, eq(actions.issueId, issues.id))
     .where(and(
       eq(actions.id, id),
-      eq(actions.approved, true),
-      eq(actions.published, true),
+      publicActionVisibilityCondition(),
     ))
     .limit(1);
 
@@ -143,8 +151,7 @@ export async function getPublishedActionBySlugs(issueSlug: string, actionSlug: s
     .where(and(
       eq(issues.slug, issueSlug),
       eq(actions.slug, actionSlug),
-      eq(actions.approved, true),
-      eq(actions.published, true),
+      publicActionVisibilityCondition(),
     ))
     .limit(1);
 
@@ -163,8 +170,7 @@ export async function getPublishedIssue(slug: string): Promise<PublishedIssue | 
     .innerJoin(issues, eq(actions.issueId, issues.id))
     .where(and(
       eq(actions.issueId, issue.id),
-      eq(actions.approved, true),
-      eq(actions.published, true),
+      publicActionVisibilityCondition(),
     ))
     .orderBy(desc(actions.urgent), asc(actions.sortOrder), asc(actions.title));
 
@@ -187,8 +193,7 @@ export async function getPublishedOrganization(id: number): Promise<PublishedOrg
     .innerJoin(issues, eq(actions.issueId, issues.id))
     .where(and(
       eq(actions.orgId, id),
-      eq(actions.approved, true),
-      eq(actions.published, true),
+      publicActionVisibilityCondition(),
     ))
     .orderBy(desc(actions.urgent), asc(actions.sortOrder), asc(actions.title));
 
@@ -206,8 +211,7 @@ export async function getPublishedOrganizationBySlug(slug: string): Promise<Publ
     .innerJoin(issues, eq(actions.issueId, issues.id))
     .where(and(
       eq(actions.orgId, organization.id),
-      eq(actions.approved, true),
-      eq(actions.published, true),
+      publicActionVisibilityCondition(),
     ))
     .orderBy(desc(actions.urgent), asc(actions.sortOrder), asc(actions.title));
 
@@ -242,8 +246,7 @@ export async function getRecentPublishedActionsForIssue(issueId: number) {
     .innerJoin(issues, eq(actions.issueId, issues.id))
     .where(and(
       eq(actions.issueId, issueId),
-      eq(actions.approved, true),
-      eq(actions.published, true),
+      publicActionVisibilityCondition(),
     ))
     .orderBy(desc(actions.createdAt))
     .limit(20);
@@ -256,8 +259,7 @@ export async function getRecentPublishedActionsForOrganization(organizationId: n
     .innerJoin(issues, eq(actions.issueId, issues.id))
     .where(and(
       eq(actions.orgId, organizationId),
-      eq(actions.approved, true),
-      eq(actions.published, true),
+      publicActionVisibilityCondition(),
     ))
     .orderBy(desc(actions.createdAt))
     .limit(20);
@@ -273,8 +275,7 @@ export async function searchPublishedContent(query: string): Promise<SearchResul
       .from(actions)
       .where(and(
         eq(actions.orgId, orgs.id),
-        eq(actions.approved, true),
-        eq(actions.published, true),
+        publicActionVisibilityCondition(),
       )),
   );
 
@@ -294,7 +295,7 @@ export async function searchPublishedContent(query: string): Promise<SearchResul
       .from(actions)
       .innerJoin(orgs, eq(actions.orgId, orgs.id))
       .innerJoin(issues, eq(actions.issueId, issues.id))
-      .where(and(eq(actions.approved, true), eq(actions.published, true)))
+      .where(publicActionVisibilityCondition())
       .orderBy(asc(actionScore))
       .limit(8),
     db

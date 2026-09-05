@@ -6,6 +6,7 @@ import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { SiteHeader } from '@/app/site-header';
 import { getPublishedIssue } from '@/lib/db';
+import { IssueActionsList } from '../issue-actions-list';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,6 +35,18 @@ export async function generateMetadata({ params }: IssuePageProps): Promise<Meta
 export default async function IssuePage({ params }: IssuePageProps) {
   const issue = await findIssue(params);
   if (!issue) notFound();
+  const actions = issue.actions.map((action) => ({
+    id: action.id,
+    slug: action.slug,
+    title: action.title,
+    detail: action.detail,
+    type: action.type,
+    urgent: action.urgent,
+    organization: action.organization,
+    organizationSlug: action.organizationSlug,
+    issueSlug: action.issueSlug,
+    effort: action.effort,
+  }));
 
   return (
     <main className="issue-detail-page">
@@ -63,24 +76,10 @@ export default async function IssuePage({ params }: IssuePageProps) {
 
       <section className="org-actions-section" id="issue-actions">
         <div className="section-heading">
-          <div><p className="eyebrow"><span /> MAKE YOUR MOVE</p><h2>Take action</h2></div>
+          <div><p className="eyebrow"><span /> MAKE YOUR MOVE</p><h2 className="issue-page-action-heading">Take <span className="heading-end-lockup">action<Image className="heading-end-star" src="/issue-page-take-action-star.png" alt="" width={99} height={99} aria-hidden="true" unoptimized /></span></h2></div>
           <p>Every listing gives you the context, organization, and direct path you need to make a difference on {issue.name}.</p>
         </div>
-        <div className="action-list">
-          {issue.actions.map((action) => (
-            <article className="action-card" key={action.id}>
-              <div className="card-main">
-                <h3><Link href={`/a/${issue.slug}/${action.slug}`}>{action.title}</Link></h3>
-                <p>{action.detail}</p>
-                <span className="organization">
-                  <span className="type-pill">{action.type}</span>{action.urgent && <span className="type-pill urgent">Priority</span>} <span className="organization-prefix">BY</span> <Link href={`/o/${action.organizationSlug}`}>{action.organization.toUpperCase()}</Link>
-                </span>
-              </div>
-              <div className="card-action"><Link href={`/a/${issue.slug}/${action.slug}`} aria-label={`Learn more and take action: ${action.title}`}>TAKE ACTION <b aria-hidden="true">→</b></Link><span>{action.effort}</span></div>
-            </article>
-          ))}
-          {issue.actions.length === 0 && <p className="empty-state">No published actions for this issue yet.</p>}
-        </div>
+        <IssueActionsList actions={actions} />
       </section>
 
       <footer><Link className="brand footer-brand" href="/" aria-label="Force Against Something home"><Image src="/footer-wordmark-star.png" alt="Force Against Something" width={620} height={99} unoptimized /></Link><p>Pick an issue. Do your part.</p><div><Link href="/contact">Contact</Link><Link href="/api">API</Link><Link href="/submit">Submit an action</Link></div></footer>
