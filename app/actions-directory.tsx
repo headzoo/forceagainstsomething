@@ -132,7 +132,6 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
           <p className="dek">A focused directory of verified petitions, lawsuits, and campaigns fighting for the issue you choose.</p>
         </div>
         <div className="issue-card">
-          <p className="step">YOUR ISSUE / 01</p>
           <p className="issue-card-prompt" id="issue-picker-label">What are you fighting for?</p>
           {issueSlug === null ? (
             <div className="issue-options issue-options-loading" aria-hidden="true">
@@ -162,7 +161,6 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
               })}
             </div>
           )}
-          {selectedIssue && <p className="microcopy">{issueActions.length} verified actions · Updated September 2026</p>}
         </div>
       </section>
 
