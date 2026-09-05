@@ -47,6 +47,7 @@ export const actions = pgTable('actions', {
   issueId: bigint('issue_id', { mode: 'number' }).notNull().references(() => issues.id, { onDelete: 'cascade' }),
   orgId: bigint('org_id', { mode: 'number' }).notNull().references(() => orgs.id, { onDelete: 'restrict' }),
   submittedByUserId: text('submitted_by_user_id').references(() => user.id, { onDelete: 'set null' }),
+  automaticallyAdded: boolean('automatically_added').notNull().default(false),
   slug: text('slug').notNull().unique(),
   type: actionType('type').notNull(),
   title: text('title').notNull(),

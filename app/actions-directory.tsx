@@ -22,6 +22,11 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
   const [bookmarkError, setBookmarkError] = useState('');
   const bookmarkedActionIds = bookmarks && bookmarks.userId === userId ? bookmarks.actionIds : new Set<number>();
   const selectedIssue = issues.find((issue) => issue.slug === issueSlug) ?? initialIssue;
+  const actionCountByIssueId = useMemo(() => {
+    const counts = new Map<number, number>();
+    actions.forEach((action) => counts.set(action.issueId, (counts.get(action.issueId) ?? 0) + 1));
+    return counts;
+  }, [actions]);
   const issueActions = useMemo(
     () => actions.filter((action) => action.issueId === selectedIssue?.id),
     [actions, selectedIssue?.id],
@@ -102,13 +107,26 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
         </div>
         <div className="issue-card">
           <p className="step">YOUR ISSUE / 01</p>
-          <label htmlFor="issue">What are you fighting for?</label>
-          <div className="select-wrap">
-            <select id="issue" value={issueSlug} onChange={(event) => { setIssueSlug(event.target.value); setFilter('All'); }}>
-              {issues.map((issue) => <option key={issue.id} value={issue.slug} disabled={issue.status === 'planned'}>{issue.name}{issue.status === 'planned' ? ' — coming next' : ''}</option>)}
-            </select>
+          <p className="issue-card-prompt" id="issue-picker-label">What are you fighting for?</p>
+          <div className="issue-options" role="group" aria-labelledby="issue-picker-label">
+            {issues.map((issue) => {
+              const isSelected = selectedIssue?.id === issue.id;
+              const isPlanned = issue.status === 'planned';
+              return (
+                <button
+                  key={issue.id}
+                  type="button"
+                  className={`issue-option${isSelected ? ' active' : ''}`}
+                  disabled={isPlanned}
+                  aria-pressed={isSelected}
+                  onClick={() => { setIssueSlug(issue.slug); setFilter('All'); }}
+                >
+                  <span>{issue.name}</span>
+                  <small>{isPlanned ? 'Coming next' : `${actionCountByIssueId.get(issue.id) ?? 0} actions`}</small>
+                </button>
+              );
+            })}
           </div>
-          <a className="primary-button" href="#actions">SHOW ME THE ACTIONS <span aria-hidden="true">↓</span></a>
           <p className="microcopy">{issueActions.length} verified actions · Updated September 2026</p>
         </div>
       </section>
@@ -156,7 +174,7 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
       </section>
 
       <section className="trust-band"><div className="trust-mark" aria-hidden="true"><span>✓</span></div><div><p className="eyebrow"><span /> OUR STANDARD</p><h2>Curated for action,<br />not attention.</h2></div><p>We prioritize credible organizations, active efforts, transparent asks, and direct links. No outrage bait. No pay-to-play placement. Just useful ways to help.</p></section>
-      <footer><a className="brand footer-brand" href="#top" aria-label="Force Against Something home"><Image src="/footer-wordmark-star.png" alt="Force Against Something" width={620} height={99} unoptimized /></a><p>Pick an issue. Do your part.</p><div><a href="mailto:hello@forceagainstsomething.com">Contact</a><Link href="/submit">Submit an action</Link></div></footer>
+      <footer><a className="brand footer-brand" href="#top" aria-label="Force Against Something home"><Image src="/footer-wordmark-star.png" alt="Force Against Something" width={620} height={99} unoptimized /></a><p>Pick an issue. Do your part.</p><div><Link href="/contact">Contact</Link><Link href="/submit">Submit an action</Link></div></footer>
     </main>
   );
 }

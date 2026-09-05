@@ -17,6 +17,27 @@ function parseActionId(value: string) {
   return Number.isSafeInteger(id) && id > 0 ? id : null;
 }
 
+const typeDescriptions = {
+  Petition: 'Add your name to a public ask or message campaign.',
+  Lawsuit: 'Support legal action or advocacy tied to a court case.',
+  Campaign: 'Join organized pressure, volunteering, or ongoing outreach.',
+};
+
+function describeEffort(effort: string) {
+  return `Estimated time or commitment: ${effort}.`;
+}
+
+function formatCreatedDate(value: Date | string) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Unknown';
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
+}
+
 async function findAction(params: ActionPageProps['params']) {
   const { id: value } = await params;
   const id = parseActionId(value);
@@ -38,6 +59,7 @@ export async function generateMetadata({ params }: ActionPageProps): Promise<Met
 export default async function ActionPage({ params }: ActionPageProps) {
   const action = await findAction(params);
   if (!action) notFound();
+  const createdDate = formatCreatedDate(action.createdAt);
 
   return (
     <main className="action-detail-page">
@@ -67,15 +89,47 @@ export default async function ActionPage({ params }: ActionPageProps) {
       </section>
 
       <section className="action-description-shell">
-        <div className="action-description-label"><p className="eyebrow"><span /> THE DETAILS</p><p>{action.issue}</p></div>
+        <div className="action-description-label">
+          <p className="eyebrow"><span /> THE DETAILS</p>
+          <ul className="action-details-list">
+            <li>
+              <small>Issue</small>
+              <div><Link href={`/issues/${action.issueSlug}`}>{action.issue}</Link></div>
+              {action.issueDetail && <p>{action.issueDetail}</p>}
+            </li>
+            <li>
+              <small>Link</small>
+              <div><a className="action-details-url" href={action.href} target="_blank" rel="noreferrer">{action.href}</a></div>
+            </li>
+            <li>
+              <small>Org</small>
+              <div><Link href={`/orgs/${action.orgId}`}>{action.organization}</Link></div>
+            </li>
+            <li>
+              <small>Type</small>
+              <div>{action.type}</div>
+              <p>{typeDescriptions[action.type]}</p>
+            </li>
+            <li>
+              <small>Effort</small>
+              <div>{action.effort}</div>
+              <p>{describeEffort(action.effort)}</p>
+            </li>
+            <li>
+              <small>Created</small>
+              <div>{createdDate}</div>
+            </li>
+          </ul>
+        </div>
         <article className="markdown-content">
           {action.description
             ? <Markdown remarkPlugins={[remarkGfm]}>{action.description}</Markdown>
             : <p>{action.detail}</p>}
+          <a className="primary-button action-description-button" href={action.href} target="_blank" rel="noreferrer">TAKE ACTION <span aria-hidden="true">↗</span></a>
         </article>
       </section>
 
-      <footer><Link className="brand footer-brand" href="/" aria-label="Force Against Something home"><Image src="/footer-wordmark-star.png" alt="Force Against Something" width={620} height={99} unoptimized /></Link><p>Pick an issue. Do your part.</p><div><a href="mailto:hello@forceagainstsomething.com">Contact</a><Link href="/submit">Submit an action</Link></div></footer>
+      <footer><Link className="brand footer-brand" href="/" aria-label="Force Against Something home"><Image src="/footer-wordmark-star.png" alt="Force Against Something" width={620} height={99} unoptimized /></Link><p>Pick an issue. Do your part.</p><div><Link href="/contact">Contact</Link><Link href="/submit">Submit an action</Link></div></footer>
     </main>
   );
 }

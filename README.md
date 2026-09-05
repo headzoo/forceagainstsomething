@@ -49,12 +49,27 @@ This project requires Node.js 22.13 or newer and a PostgreSQL database.
 
 Open site [http://localhost:3000](http://localhost:3000) in your browser.
 
+## Automatic action discovery
+
+The action discovery job searches the web once for each issue and adds genuinely new results to the admin review queue. It reuses an existing organization when its name or website matches. Newly created organization records are named `Supporters of <organization>` to make clear that they are directory-managed profiles, not official accounts.
+
+Set `OPENAI_API_KEY` in `.env.local`, then run:
+
+```bash
+npm run actions:discover
+```
+
+Useful local options are `--dry-run`, `--issue=<slug>`, and `--max=<count>`. A dry run searches and reports candidates without changing the database.
+
+Production uses the secured `/api/cron/discover-actions` route and the weekly schedule in `vercel.json`. Add `OPENAI_API_KEY` and a random `CRON_SECRET` of at least 16 characters to the Vercel project. `ACTION_DISCOVERY_MODEL` and `ACTION_DISCOVERY_LIMIT` are optional overrides.
+
 ## Available scripts
 
 - `npm run dev` — start the development server
 - `npm run build` — create a production build
 - `npm start` — run the production build
 - `npm run lint` — lint the project
+- `npm run actions:discover` — search for new actions and add them to the admin review queue
 - `npm run db:generate` — generate a Drizzle migration from schema changes
 - `npm run db:migrate` — apply pending database migrations
 - `npm run auth:generate` — regenerate the Better Auth database schema

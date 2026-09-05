@@ -83,6 +83,7 @@ export async function getPublishedAction(id: number) {
       organization: orgs.name,
       issue: issues.name,
       issueSlug: issues.slug,
+      issueDetail: issues.detail,
     })
     .from(actions)
     .innerJoin(orgs, eq(actions.orgId, orgs.id))

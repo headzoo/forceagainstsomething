@@ -910,6 +910,7 @@ for (const action of seedActions) {
   const values: typeof actions.$inferInsert = {
     issueId: action.issueId,
     orgId: organization.id,
+    automaticallyAdded: true,
     slug: action.slug,
     type: action.type,
     title: action.title,
