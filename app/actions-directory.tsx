@@ -140,7 +140,7 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
 
       <section className="hero" id="top">
         <div className="hero-copy">
-          <p className="eyebrow"><span /> ONE ISSUE. EVERY WAY TO ACT.</p>
+          <p className="eyebrow"><span /> PICK AN ISSUE. DO YOUR PART.</p>
           <h1 className="hero-cta">
             <Image className="hero-cta-image" src={ctaImage} alt="Turn concern into force." priority sizes="(max-width: 780px) calc(100vw - 40px), 48vw" />
           </h1>

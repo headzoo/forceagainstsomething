@@ -247,7 +247,10 @@ export function SiteHeader({ showSubmitLink = true }: SiteHeaderProps) {
       <div className="header-actions">
         <AuthControl />
         {showSubmitLink && (
-          <Link className="submit-link" href="/submit">Submit an action</Link>
+          <Link className="submit-link" href="/submit">
+            <span className="submit-link-full">Submit an action</span>
+            <span className="submit-link-short">Add action</span>
+          </Link>
         )}
       </div>
     </header>
