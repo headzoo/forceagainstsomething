@@ -6,7 +6,7 @@ Force Against Something is a curated directory that helps people turn concern ab
 
 - Browse actions by issue and filter them by petition, lawsuit, or campaign
 - View action details and verified organization profiles
-- Create an account and bookmark actions
+- Create an account and like actions
 - Submit an action for review
 - Manage organization information
 - Review and publish submissions through an admin workflow

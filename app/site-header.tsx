@@ -17,8 +17,8 @@ type FlatResult =
 
 function resultHref(result: FlatResult) {
   return result.kind === 'organization'
-    ? `/org/${result.item.slug}`
-    : `/action/${result.item.issueSlug}/${result.item.slug}`;
+    ? `/o/${result.item.slug}`
+    : `/a/${result.item.issueSlug}/${result.item.slug}`;
 }
 
 function flattenResults(results: SearchResults | null): FlatResult[] {

@@ -2,7 +2,7 @@ import { neon } from '@neondatabase/serverless';
 import { and, asc, desc, eq, exists, getTableColumns, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from '@/db/schema';
-import { actions, issues, orgs, type ActionRecord, type Issue } from '@/db/schema';
+import { actionLikes, actions, issues, orgs, type ActionRecord, type Issue } from '@/db/schema';
 
 export type { ActionRecord, Issue, Organization } from '@/db/schema';
 
@@ -11,6 +11,7 @@ void _actionsSearchTsv;
 
 export type PublicAction = Omit<ActionRecord, 'searchTsv'>;
 export type DirectoryAction = PublicAction & { organization: string; organizationSlug: string; issueSlug: string };
+export type LikedAction = DirectoryAction & { issue: string; likedAt: Date };
 export type PublishedOrganization = {
   id: number;
   slug: string;
@@ -71,6 +72,28 @@ export async function getDirectoryData() {
     issues: issueRows as Issue[],
     actions: actionRows as DirectoryAction[],
   };
+}
+
+export async function getLikedActions(userId: string): Promise<LikedAction[]> {
+  return db
+    .select({
+      ...actionColumns,
+      organization: orgs.name,
+      organizationSlug: orgs.slug,
+      issue: issues.name,
+      issueSlug: issues.slug,
+      likedAt: actionLikes.createdAt,
+    })
+    .from(actionLikes)
+    .innerJoin(actions, eq(actionLikes.actionId, actions.id))
+    .innerJoin(orgs, eq(actions.orgId, orgs.id))
+    .innerJoin(issues, eq(actions.issueId, issues.id))
+    .where(and(
+      eq(actionLikes.userId, userId),
+      eq(actions.approved, true),
+      eq(actions.published, true),
+    ))
+    .orderBy(desc(actionLikes.createdAt));
 }
 
 export async function getActiveIssues() {

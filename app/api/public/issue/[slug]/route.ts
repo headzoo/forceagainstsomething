@@ -10,7 +10,7 @@ export async function GET(_request: Request, context: { params: Promise<{ slug: 
   return Response.json({
     id: issue.id,
     slug: issue.slug,
-    url: `/issue/${issue.slug}`,
+    url: `/i/${issue.slug}`,
     name: issue.name,
     detail: issue.detail,
     description: issue.description,

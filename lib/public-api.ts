@@ -7,7 +7,7 @@ export function publicActionJson(action: PublicAction, issue: IssueReference, or
   return {
     id: action.id,
     slug: action.slug,
-    url: `/action/${issue.slug}/${action.slug}`,
+    url: `/a/${issue.slug}/${action.slug}`,
     type: action.type,
     title: action.title,
     detail: action.detail,

@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: IssuePageProps): Promise<Meta
   if (!issue) return { title: 'Issue not found' };
 
   const description = issue.detail || `Find ways to take action on ${issue.name}.`;
-  const url = `/issue/${issue.slug}`;
+  const url = `/i/${issue.slug}`;
   return {
     title: `${issue.name} | Force Against Something`,
     description,
@@ -67,16 +67,16 @@ export default async function IssuePage({ params }: IssuePageProps) {
           <p>Every listing gives you the context, organization, and direct path you need to make a difference on {issue.name}.</p>
         </div>
         <div className="action-list">
-          {issue.actions.map((action, index) => (
+          {issue.actions.map((action) => (
             <article className="action-card" key={action.id}>
-              <div className="card-number">{String(index + 1).padStart(2, '0')}</div>
               <div className="card-main">
-                <div className="badges"><span className={`type ${action.type.toLowerCase()}`}>{action.type}</span>{action.urgent && <span className="urgent">Priority</span>}</div>
-                <h3><Link href={`/action/${issue.slug}/${action.slug}`}>{action.title}</Link></h3>
+                <h3><Link href={`/a/${issue.slug}/${action.slug}`}>{action.title}</Link></h3>
                 <p>{action.detail}</p>
-                <span className="organization">BY <Link href={`/org/${action.organizationSlug}`}>{action.organization.toUpperCase()}</Link></span>
+                <span className="organization">
+                  <span className="type-pill">{action.type}</span>{action.urgent && <span className="type-pill urgent">Priority</span>} <span className="organization-prefix">BY</span> <Link href={`/o/${action.organizationSlug}`}>{action.organization.toUpperCase()}</Link>
+                </span>
               </div>
-              <div className="card-action"><span>{action.effort}</span><Link href={`/action/${issue.slug}/${action.slug}`} aria-label={`Learn more and take action: ${action.title}`}>TAKE ACTION <b aria-hidden="true">→</b></Link></div>
+              <div className="card-action"><Link href={`/a/${issue.slug}/${action.slug}`} aria-label={`Learn more and take action: ${action.title}`}>TAKE ACTION <b aria-hidden="true">→</b></Link><span>{action.effort}</span></div>
             </article>
           ))}
           {issue.actions.length === 0 && <p className="empty-state">No published actions for this issue yet.</p>}

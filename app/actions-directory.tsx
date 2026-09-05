@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import ctaImage from '@/assets/cta.jpg';
 import type { DirectoryAction, Issue } from '@/lib/db';
 import { authClient } from '@/lib/auth-client';
-import { BookmarkButton } from './action-bookmark-button';
+import { LikeButton } from './action-like-button';
 import { SiteHeader } from './site-header';
 
 type ActionType = DirectoryAction['type'];
@@ -21,10 +21,10 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
   const initialIssueSlug = initialIssue?.slug ?? '';
   const [issueSlug, setIssueSlug] = useState<string | null>(null);
   const [filter, setFilter] = useState<(typeof filters)[number]>('All');
-  const [bookmarks, setBookmarks] = useState<{ userId: string; actionIds: Set<number> } | null>(null);
-  const [updatingBookmarks, setUpdatingBookmarks] = useState<Set<number>>(new Set());
-  const [bookmarkError, setBookmarkError] = useState('');
-  const bookmarkedActionIds = bookmarks && bookmarks.userId === userId ? bookmarks.actionIds : new Set<number>();
+  const [likes, setLikes] = useState<{ userId: string; actionIds: Set<number> } | null>(null);
+  const [updatingLikes, setUpdatingLikes] = useState<Set<number>>(new Set());
+  const [likeError, setLikeError] = useState('');
+  const likedActionIds = likes && likes.userId === userId ? likes.actionIds : new Set<number>();
   const selectedIssue = issueSlug ? issues.find((issue) => issue.slug === issueSlug) ?? initialIssue : null;
   const issueActions = useMemo(
     () => actions.filter((action) => action.issueId === selectedIssue?.id),
@@ -66,52 +66,52 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
     if (!userId) return;
 
     const controller = new AbortController();
-    fetch('/api/bookmarks', { signal: controller.signal })
+    fetch('/api/likes', { signal: controller.signal })
       .then(async (response) => {
-        if (!response.ok) throw new Error('Could not load bookmarks.');
+        if (!response.ok) throw new Error('Could not load likes.');
         return await response.json() as { actionIds: number[] };
       })
-      .then(({ actionIds }) => setBookmarks({ userId, actionIds: new Set(actionIds) }))
+      .then(({ actionIds }) => setLikes({ userId, actionIds: new Set(actionIds) }))
       .catch((error: unknown) => {
-        if (error instanceof Error && error.name !== 'AbortError') setBookmarkError(error.message);
+        if (error instanceof Error && error.name !== 'AbortError') setLikeError(error.message);
       });
 
     return () => controller.abort();
   }, [userId]);
 
-  async function toggleBookmark(actionId: number) {
-    if (!session || updatingBookmarks.has(actionId)) return;
+  async function toggleLike(actionId: number) {
+    if (!session || updatingLikes.has(actionId)) return;
 
-    const wasBookmarked = bookmarkedActionIds.has(actionId);
-    setBookmarkError('');
-    setBookmarks((current) => {
+    const wasLiked = likedActionIds.has(actionId);
+    setLikeError('');
+    setLikes((current) => {
       const next = new Set(current?.userId === session.user.id ? current.actionIds : []);
-      if (wasBookmarked) next.delete(actionId);
+      if (wasLiked) next.delete(actionId);
       else next.add(actionId);
       return { userId: session.user.id, actionIds: next };
     });
-    setUpdatingBookmarks((current) => new Set(current).add(actionId));
+    setUpdatingLikes((current) => new Set(current).add(actionId));
 
     try {
-      const response = await fetch('/api/bookmarks', {
-        method: wasBookmarked ? 'DELETE' : 'POST',
+      const response = await fetch('/api/likes', {
+        method: wasLiked ? 'DELETE' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ actionId }),
       });
       if (!response.ok) {
         const body = await response.json().catch(() => null) as { error?: string } | null;
-        throw new Error(body?.error ?? 'Could not update that bookmark.');
+        throw new Error(body?.error ?? 'Could not update that like.');
       }
     } catch (error) {
-      setBookmarks((current) => {
+      setLikes((current) => {
         const next = new Set(current?.userId === session.user.id ? current.actionIds : []);
-        if (wasBookmarked) next.add(actionId);
+        if (wasLiked) next.add(actionId);
         else next.delete(actionId);
         return { userId: session.user.id, actionIds: next };
       });
-      setBookmarkError(error instanceof Error ? error.message : 'Could not update that bookmark.');
+      setLikeError(error instanceof Error ? error.message : 'Could not update that like.');
     } finally {
-      setUpdatingBookmarks((current) => {
+      setUpdatingLikes((current) => {
         const next = new Set(current);
         next.delete(actionId);
         return next;
@@ -167,37 +167,37 @@ export function ActionsDirectory({ issues, actions }: { issues: Issue[]; actions
       {selectedIssue && (
         <section className="actions-section" id="actions">
           <div className="section-heading">
-            <div><p className="eyebrow"><span /> CURRENT FOCUS</p><h2><Link className="issue-heading-link" href={`/issue/${selectedIssue.slug}`}>{selectedIssue.name}</Link></h2></div>
+            <div><p className="eyebrow"><span /> CURRENT FOCUS</p><h2><Link className="issue-heading-link" href={`/i/${selectedIssue.slug}`}>{selectedIssue.name}</Link></h2></div>
             <p>Every listing gives you the context, organization, and direct path you need to act. We check ownership, activity, and a clear path to impact.</p>
           </div>
           <div className="filter-row" role="group" aria-label="Filter actions by type">
             {filters.map((item) => <button key={item} onClick={() => setFilter(item)} className={filter === item ? 'active' : ''} aria-pressed={filter === item}>{item} {item !== 'All' && <sup>{issueActions.filter((action) => action.type === item).length}</sup>}</button>)}
           </div>
           <div className="action-list" aria-live="polite">
-            {visible.map((action, index) => (
+            {visible.map((action) => (
               <article className="action-card" key={action.id}>
-                <div className="card-number">{String(index + 1).padStart(2, '0')}</div>
                 <div className="card-main">
-                  <div className="badges"><span className={`type ${action.type.toLowerCase()}`}>{action.type}</span>{action.urgent && <span className="urgent">Priority</span>}</div>
                   <div className="action-title-row">
                     {session && (
-                      <BookmarkButton
+                      <LikeButton
                         actionTitle={action.title}
-                        bookmarked={bookmarkedActionIds.has(action.id)}
-                        disabled={updatingBookmarks.has(action.id)}
-                        onClick={() => toggleBookmark(action.id)}
+                        liked={likedActionIds.has(action.id)}
+                        disabled={updatingLikes.has(action.id)}
+                        onClick={() => toggleLike(action.id)}
                       />
                     )}
-                    <h3><Link href={`/action/${action.issueSlug}/${action.slug}`}>{action.title}</Link></h3>
+                    <h3><Link href={`/a/${action.issueSlug}/${action.slug}`}>{action.title}</Link></h3>
                   </div>
                   <p>{action.detail}</p>
-                  <span className="organization">BY <Link href={`/org/${action.organizationSlug}`}>{action.organization.toUpperCase()}</Link></span>
+                  <span className="organization">
+                    <span className="type-pill">{action.type}</span>{action.urgent && <span className="type-pill urgent">Priority</span>} <span className="organization-prefix">BY</span> <Link href={`/o/${action.organizationSlug}`}>{action.organization.toUpperCase()}</Link>
+                  </span>
                 </div>
-                <div className="card-action"><span>{action.effort}</span><Link href={`/action/${action.issueSlug}/${action.slug}`} aria-label={`Learn more and take action: ${action.title}`}>TAKE ACTION</Link></div>
+                <div className="card-action"><Link href={`/a/${action.issueSlug}/${action.slug}`} aria-label={`Learn more and take action: ${action.title}`}>TAKE ACTION</Link><span>{action.effort}</span></div>
               </article>
             ))}
             {visible.length === 0 && <p className="empty-state">No published actions match this filter yet.</p>}
-            {bookmarkError && <p className="bookmark-error" role="alert">{bookmarkError}</p>}
+            {likeError && <p className="like-error" role="alert">{likeError}</p>}
           </div>
         </section>
       )}

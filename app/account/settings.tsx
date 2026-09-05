@@ -1,9 +1,9 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { type FormEvent, useState } from 'react';
 import { AuthControl } from '@/app/auth-control';
+import { SiteHeader } from '@/app/site-header';
 import { authClient } from '@/lib/auth-client';
 
 export function AccountSettings() {
@@ -61,10 +61,7 @@ export function AccountSettings() {
 
   return (
     <main className="settings-page">
-      <header className="site-header">
-        <Link className="brand header-brand" href="/" aria-label="Force Against Something home"><Image src="/header-wordmark-star.png" alt="Force Against Something" width={620} height={99} priority unoptimized /></Link>
-        <div className="header-actions"><AuthControl /></div>
-      </header>
+      <SiteHeader />
       <section className="settings-shell">
         <div className="settings-heading">
           <p className="eyebrow"><span /> ACCOUNT</p>

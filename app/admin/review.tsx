@@ -1,9 +1,7 @@
 'use client';
 
-import Image from 'next/image';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { AuthControl } from '@/app/auth-control';
+import { SiteHeader } from '@/app/site-header';
 
 type Submission = {
   id: number;
@@ -52,10 +50,7 @@ export function AdminReview() {
 
   return (
     <main className="admin-page">
-      <header className="site-header">
-        <Link className="brand header-brand" href="/" aria-label="Force Against Something home"><Image src="/header-wordmark-star.png" alt="Force Against Something" width={620} height={99} priority unoptimized /></Link>
-        <div className="header-actions"><AuthControl /><Link className="submit-link" href="/submit">Submit an action</Link></div>
-      </header>
+      <SiteHeader />
       <section className="admin-shell">
         <div className="admin-heading"><p className="eyebrow"><span /> ADMIN REVIEW</p><h1>Pending<br /><em>actions.</em></h1><p>Approving publishes the action immediately in the public directory.</p></div>
         <div className="review-list">

@@ -80,16 +80,16 @@ export const actions = pgTable('actions', {
   uniqueIndex('actions_issue_title_unique').on(table.issueId, table.title),
 ]);
 
-export const actionBookmarks = pgTable('action_bookmarks', {
+export const actionLikes = pgTable('action_likes', {
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   actionId: bigint('action_id', { mode: 'number' }).notNull().references(() => actions.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   primaryKey({ columns: [table.userId, table.actionId] }),
-  index('action_bookmarks_action_idx').on(table.actionId),
+  index('action_likes_action_idx').on(table.actionId),
 ]);
 
 export type Issue = typeof issues.$inferSelect;
 export type Organization = typeof orgs.$inferSelect;
 export type ActionRecord = typeof actions.$inferSelect;
-export type ActionBookmark = typeof actionBookmarks.$inferSelect;
+export type ActionLike = typeof actionLikes.$inferSelect;

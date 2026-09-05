@@ -106,6 +106,10 @@ export function AuthControl() {
         </button>
         {menuOpen && (
           <div className="account-menu" role="menu">
+            <Link className="account-menu-liked" href="/liked" role="menuitem" onClick={() => setMenuOpen(false)}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21.2l7.8-7.7 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" /></svg>
+              Liked
+            </Link>
             <Link href="/account" role="menuitem" onClick={() => setMenuOpen(false)}>Account</Link>
             <Link href="/organization" role="menuitem" onClick={() => setMenuOpen(false)}>Organization</Link>
             {isAdmin && <Link href="/admin" role="menuitem" onClick={() => setMenuOpen(false)}>Review submissions</Link>}

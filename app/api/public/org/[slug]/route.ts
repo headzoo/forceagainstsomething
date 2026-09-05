@@ -9,7 +9,7 @@ export async function GET(_request: Request, context: { params: Promise<{ slug: 
   const actions = await getRecentPublishedActionsForOrganization(organization.id);
   return Response.json({
     ...organization,
-    url: `/org/${organization.slug}`,
+    url: `/o/${organization.slug}`,
     actions: actions.map((action) => publicActionJson(
       action,
       { id: action.issueId, slug: action.issueSlug, name: action.issue },

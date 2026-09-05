@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ActionBookmarkButton } from '@/app/action-bookmark-button';
+import { ActionLikeButton } from '@/app/action-like-button';
 import { SiteHeader } from '@/app/site-header';
 import { getPublishedActionBySlugs } from '@/lib/db';
 
@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: ActionPageProps): Promise<Met
   const action = await findAction(params);
   if (!action) return { title: 'Action not found' };
 
-  const url = `/action/${action.issueSlug}/${action.slug}`;
+  const url = `/a/${action.issueSlug}/${action.slug}`;
   return {
     title: `${action.title} | Force Against Something`,
     description: action.detail,
@@ -64,22 +64,22 @@ export default async function ActionPage({ params }: ActionPageProps) {
           <nav className="breadcrumb" aria-label="Breadcrumb">
             <ol>
               <li><Link href="/">All actions</Link></li>
-              <li><Link href={`/issue/${action.issueSlug}`}>{action.issue}</Link></li>
+              <li><Link href={`/i/${action.issueSlug}`}>{action.issue}</Link></li>
               <li aria-current="page"><span>{action.title}</span></li>
             </ol>
           </nav>
           <div className="badges action-detail-badges">
-            <ActionBookmarkButton actionId={action.id} actionTitle={action.title} />
+            <ActionLikeButton actionId={action.id} actionTitle={action.title} />
             <span className={`type ${action.type.toLowerCase()}`}>{action.type}</span>{action.urgent && <span className="urgent">Priority</span>}
           </div>
           <h1>{action.title}</h1>
           <p>{action.detail}</p>
-          <span className="organization">BY <Link href={`/org/${action.organizationSlug}`}>{action.organization.toUpperCase()}</Link></span>
+          <span className="organization">BY <Link href={`/o/${action.organizationSlug}`}>{action.organization.toUpperCase()}</Link></span>
         </div>
         <aside className="action-detail-cta">
           <p className="step">READY TO HELP?</p>
           <h2>Make your<br />move.</h2>
-          <p>You’ll continue on <Link className="organization-inline-link" href={`/org/${action.organizationSlug}`}>{action.organization}</Link>’s website.</p>
+          <p>You’ll continue on <Link className="organization-inline-link" href={`/o/${action.organizationSlug}`}>{action.organization}</Link>’s website.</p>
           <a className="primary-button" href={action.href} target="_blank" rel="noreferrer">TAKE ACTION <span aria-hidden="true">↗</span></a>
           <small>{action.effort}</small>
         </aside>
@@ -89,9 +89,9 @@ export default async function ActionPage({ params }: ActionPageProps) {
         <div className="action-description-label">
           <p className="eyebrow"><span /> THE DETAILS</p>
           <ul className="action-details-list">
-            <li><small>Issue</small><div><Link href={`/issue/${action.issueSlug}`}>{action.issue}</Link></div>{action.issueDetail && <p>{action.issueDetail}</p>}</li>
+            <li><small>Issue</small><div><Link href={`/i/${action.issueSlug}`}>{action.issue}</Link></div>{action.issueDetail && <p>{action.issueDetail}</p>}</li>
             <li><small>Link</small><div><a className="action-details-url" href={action.href} target="_blank" rel="noreferrer">{action.href}</a></div></li>
-            <li><small>Org</small><div><Link href={`/org/${action.organizationSlug}`}>{action.organization}</Link></div></li>
+            <li><small>Org</small><div><Link href={`/o/${action.organizationSlug}`}>{action.organization}</Link></div></li>
             <li><small>Type</small><div>{action.type}</div><p>{typeDescriptions[action.type]}</p></li>
             <li><small>Effort</small><div>{action.effort}</div><p>{describeEffort(action.effort)}</p></li>
             <li><small>Created</small><div>{createdDate}</div></li>

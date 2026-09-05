@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: OrganizationPageProps): Promi
   if (!organization) return { title: 'Organization not found' };
 
   const description = `View actions from ${organization.name} on Force Against Something.`;
-  const url = `/org/${organization.slug}`;
+  const url = `/o/${organization.slug}`;
   return {
     title: `${organization.name} | Force Against Something`,
     description,
@@ -66,16 +66,16 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
           <p>{organization.actions.length} published {organization.actions.length === 1 ? 'action' : 'actions'} from {organization.name}.</p>
         </div>
         <div className="action-list">
-          {organization.actions.map((action, index) => (
+          {organization.actions.map((action) => (
             <article className="action-card" key={action.id}>
-              <div className="card-number">{String(index + 1).padStart(2, '0')}</div>
               <div className="card-main">
-                <div className="badges"><span className={`type ${action.type.toLowerCase()}`}>{action.type}</span>{action.urgent && <span className="urgent">Priority</span>}</div>
-                <h3><Link href={`/action/${action.issueSlug}/${action.slug}`}>{action.title}</Link></h3>
+                <h3><Link href={`/a/${action.issueSlug}/${action.slug}`}>{action.title}</Link></h3>
                 <p>{action.detail}</p>
-                <span className="organization"><Link href={`/issue/${action.issueSlug}`}>{action.issue.toUpperCase()}</Link></span>
+                <span className="organization">
+                  <span className="type-pill">{action.type}</span>{action.urgent && <span className="type-pill urgent">Priority</span>} <Link href={`/i/${action.issueSlug}`}>{action.issue.toUpperCase()}</Link>
+                </span>
               </div>
-              <div className="card-action"><span>{action.effort}</span><Link href={`/action/${action.issueSlug}/${action.slug}`} aria-label={`Learn more and take action: ${action.title}`}>TAKE ACTION <b aria-hidden="true">→</b></Link></div>
+              <div className="card-action"><Link href={`/a/${action.issueSlug}/${action.slug}`} aria-label={`Learn more and take action: ${action.title}`}>TAKE ACTION <b aria-hidden="true">→</b></Link><span>{action.effort}</span></div>
             </article>
           ))}
           {organization.actions.length === 0 && <p className="empty-state">This organization has no published actions yet.</p>}

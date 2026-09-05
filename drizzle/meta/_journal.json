@@ -71,6 +71,20 @@
       "when": 1788621644904,
       "tag": "0009_skinny_shadow_king",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788625910473,
+      "tag": "0010_illegal_true_believers",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1788626021900,
+      "tag": "0011_rename_like_not_null_constraints",
+      "breakpoints": true
     }
   ]
 }
